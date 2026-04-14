@@ -1,5 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
 import { useStore } from './store/useStore'
+import Auth from './components/Auth'
 import Sidebar from './components/Sidebar'
 import TaskList from './components/TaskList'
 import TaskDetail from './components/TaskDetail'
@@ -8,12 +11,41 @@ import BoardView from './components/BoardView'
 import CalendarView from './components/CalendarView'
 
 export default function App() {
-  const { view, darkMode, serifMode, setQuickAddOpen, selectedTaskId } = useStore()
+  const { view, darkMode, serifMode, setQuickAddOpen, selectedTaskId, loadData, setUserId, loading } = useStore()
+  const [authUser, setAuthUser] = useState<User | null | undefined>(undefined) // undefined = still checking
 
-  // Apply dark/serif mode classes to <html>
+  // Apply dark mode to <html>
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
+
+  // Auth listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null
+      setAuthUser(user)
+      if (user) loadData(user.id)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null
+      setAuthUser(user)
+      if (user) loadData(user.id)
+      else setUserId(null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [loadData, setUserId])
+
+  // Re-sync when tab regains focus (cross-device sync)
+  useEffect(() => {
+    function onFocus() {
+      const uid = useStore.getState().userId
+      if (uid) loadData(uid)
+    }
+    document.addEventListener('visibilitychange', onFocus)
+    return () => document.removeEventListener('visibilitychange', onFocus)
+  }, [loadData])
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -21,7 +53,6 @@ export default function App() {
       const tag = (e.target as HTMLElement).tagName
       const editing = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable
 
-      // ⌘K or Q → quick add
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         setQuickAddOpen(true)
@@ -31,15 +62,11 @@ export default function App() {
         setQuickAddOpen(true)
         return
       }
-
-      // Escape → close detail / deselect
       if (e.key === 'Escape' && !editing) {
         useStore.getState().setSelectedTaskId(null)
         useStore.getState().setQuickAddOpen(false)
         return
       }
-
-      // 1/2/3/4/5 → switch views (not in input)
       if (!editing && !e.metaKey && !e.ctrlKey) {
         if (e.key === '1') useStore.getState().setView('today')
         if (e.key === '2') useStore.getState().setView('upcoming')
@@ -48,19 +75,37 @@ export default function App() {
         if (e.key === '5') useStore.getState().setView('calendar')
       }
     }
-
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [setQuickAddOpen])
 
+  // Still checking session
+  if (authUser === undefined) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white dark:bg-gray-950">
+        <div className="w-5 h-5 rounded-full border-2 border-gray-200 border-t-violet-500 animate-spin" />
+      </div>
+    )
+  }
+
+  // Not logged in
+  if (!authUser) return <Auth />
+
   const isListView = view === 'today' || view === 'upcoming' || view === 'all' || view === 'starred' || (typeof view === 'string' && view.startsWith('label:'))
+
+  // Loading data
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-white dark:bg-gray-950">
+        <div className="w-5 h-5 rounded-full border-2 border-gray-200 border-t-violet-500 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="h-full flex bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
       <main className={`flex-1 overflow-y-auto min-w-0 ${serifMode ? 'font-serif-mode' : ''}`}>
         {isListView && (
           <div className="max-w-2xl mx-auto pb-24">
@@ -71,13 +116,9 @@ export default function App() {
         {view === 'calendar' && <CalendarView />}
       </main>
 
-      {/* Task detail panel */}
       {selectedTaskId && <TaskDetail />}
-
-      {/* Quick add modal */}
       <QuickAdd />
 
-      {/* Keyboard shortcut hint */}
       <div className="fixed bottom-4 right-4 z-10 hidden lg:flex items-center gap-1.5 text-xs text-gray-300 dark:text-gray-700 pointer-events-none select-none">
         <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 dark:text-gray-600">Q</kbd>
         <span>or</span>
