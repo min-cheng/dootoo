@@ -37,14 +37,16 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [loadData, setUserId])
 
-  // Re-sync when tab regains focus (cross-device sync)
+  // Re-sync when tab becomes visible again (cross-device sync)
   useEffect(() => {
-    function onFocus() {
-      const uid = useStore.getState().userId
-      if (uid) loadData(uid)
+    function onVisibility() {
+      if (document.visibilityState === 'visible') {
+        const uid = useStore.getState().userId
+        if (uid) loadData(uid)
+      }
     }
-    document.addEventListener('visibilitychange', onFocus)
-    return () => document.removeEventListener('visibilitychange', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [loadData])
 
   // Global keyboard shortcuts

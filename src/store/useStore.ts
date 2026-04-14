@@ -55,6 +55,16 @@ function rowToLabel(row: any): Label {
   return { id: row.id, name: row.name, color: row.color }
 }
 
+// --- Sync helpers ---
+async function syncTask(task: Task, userId: string) {
+  const { error } = await supabase.from('tasks').upsert(taskToRow(task, userId))
+  if (error) console.error('[dootoo] task sync failed:', error)
+}
+async function syncLabel(label: Label, userId: string) {
+  const { error } = await supabase.from('labels').upsert({ ...label, user_id: userId })
+  if (error) console.error('[dootoo] label sync failed:', error)
+}
+
 // --- UI prefs (per-device, stay in localStorage) ---
 function loadPrefs() {
   try {
@@ -180,7 +190,7 @@ export const useStore = create<AppState>()((set, get) => ({
       order: maxOrder + 1,
     }
     set(s => ({ tasks: [...s.tasks, task] }))
-    if (userId) supabase.from('tasks').upsert(taskToRow(task, userId))
+    if (userId) syncTask(task, userId)
     return id
   },
 
@@ -193,7 +203,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === id)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -203,7 +213,9 @@ export const useStore = create<AppState>()((set, get) => ({
       tasks: s.tasks.filter(t => t.id !== id),
       selectedTaskId: s.selectedTaskId === id ? null : s.selectedTaskId,
     }))
-    if (userId) supabase.from('tasks').delete().eq('id', id)
+    if (userId) supabase.from('tasks').delete().eq('id', id).then(({ error }) => {
+      if (error) console.error('[dootoo] task delete failed:', error)
+    })
   },
 
   toggleTask: (id) => {
@@ -226,7 +238,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === id)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -240,7 +252,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const affected = get().tasks.filter(t => orderedIds.includes(t.id))
-      supabase.from('tasks').upsert(affected.map(t => taskToRow(t, userId)))
+      Promise.all(affected.map(t => syncTask(t, userId)))
     }
   },
 
@@ -261,7 +273,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === id)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -276,7 +288,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === taskId)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -294,7 +306,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === taskId)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -312,7 +324,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === taskId)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -332,7 +344,7 @@ export const useStore = create<AppState>()((set, get) => ({
     }))
     if (userId) {
       const updated = get().tasks.find(t => t.id === taskId)
-      if (updated) supabase.from('tasks').upsert(taskToRow(updated, userId))
+      if (updated) syncTask(updated, userId)
     }
   },
 
@@ -341,7 +353,7 @@ export const useStore = create<AppState>()((set, get) => ({
     const id = uuid()
     const label: Label = { id, name: name.toLowerCase().trim(), color }
     set(s => ({ labels: [...s.labels, label] }))
-    if (userId) supabase.from('labels').upsert({ ...label, user_id: userId })
+    if (userId) syncLabel(label, userId)
     return id
   },
 
@@ -350,7 +362,7 @@ export const useStore = create<AppState>()((set, get) => ({
     set(s => ({ labels: s.labels.map(l => (l.id === id ? { ...l, ...updates } : l)) }))
     if (userId) {
       const updated = get().labels.find(l => l.id === id)
-      if (updated) supabase.from('labels').upsert({ ...updated, user_id: userId })
+      if (updated) syncLabel(updated, userId)
     }
   },
 
@@ -360,7 +372,9 @@ export const useStore = create<AppState>()((set, get) => ({
       labels: s.labels.filter(l => l.id !== id),
       tasks: s.tasks.map(t => ({ ...t, labelIds: t.labelIds.filter(lid => lid !== id) })),
     }))
-    if (userId) supabase.from('labels').delete().eq('id', id)
+    if (userId) supabase.from('labels').delete().eq('id', id).then(({ error }) => {
+      if (error) console.error('[dootoo] label delete failed:', error)
+    })
   },
 
   setView: (view) => {
