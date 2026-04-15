@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Calendar, RotateCcw, Star } from 'lucide-react'
+import { Search, Calendar, RotateCcw, Star, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { parseNL } from '../utils/nlp'
 import { formatDueDate } from '../utils/date'
@@ -44,6 +44,8 @@ export default function QuickAdd() {
       labelIds,
       recurring: parsed.recurring,
       starred: parsed.starred,
+      waiting: parsed.waiting,
+      waitingOn: parsed.waitingOn,
     })
 
     setValue('')
@@ -79,7 +81,7 @@ export default function QuickAdd() {
         </div>
 
         {/* NLP preview */}
-        {parsed && (parsed.dueDate || parsed.labelNames.length > 0 || parsed.recurring || parsed.starred) && (
+        {parsed && (parsed.dueDate || parsed.labelNames.length > 0 || parsed.recurring || parsed.starred || parsed.waiting) && (
           <div className="px-5 pb-3 pt-0 flex flex-wrap gap-2 border-t border-gray-50 dark:border-gray-800">
             {parsed.dueDate && (
               <span className="inline-flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
@@ -100,6 +102,12 @@ export default function QuickAdd() {
                 Starred
               </span>
             )}
+            {parsed.waiting && (
+              <span className="inline-flex items-center gap-1.5 text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2.5 py-1 rounded-full">
+                <Hourglass size={11} />
+                {parsed.waitingOn || 'Waiting'}
+              </span>
+            )}
             {parsed.labelNames.map(name => (
               <span key={name} className="inline-flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2.5 py-1 rounded-full">
                 #{name}
@@ -115,7 +123,7 @@ export default function QuickAdd() {
             <span><kbd className="font-mono">Esc</kbd> to cancel</span>
           </div>
           <div className="text-xs text-gray-400 dark:text-gray-600 space-x-2">
-            <span className="opacity-60">tomorrow · next monday · at 3pm · #label · !!</span>
+            <span className="opacity-60">tomorrow · at 3pm · #label · !! · ~waiting</span>
           </div>
         </div>
       </div>

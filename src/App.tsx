@@ -93,7 +93,7 @@ export default function App() {
   // Not logged in
   if (!authUser) return <Auth />
 
-  const isListView = view === 'today' || view === 'upcoming' || view === 'all' || view === 'starred' || (typeof view === 'string' && view.startsWith('label:'))
+  const isListView = view === 'today' || view === 'upcoming' || view === 'all' || view === 'starred' || view === 'waiting' || (typeof view === 'string' && view.startsWith('label:'))
 
   // Loading data
   if (loading) {

@@ -14,6 +14,7 @@ export default function TaskList({ view }: Props) {
   if (view === 'upcoming') return <UpcomingView />
   if (view === 'all') return <AllView />
   if (view === 'starred') return <StarredView />
+  if (view === 'waiting') return <WaitingView />
   if (typeof view === 'string' && view.startsWith('label:')) {
     const labelId = view.slice(6)
     return <LabelView labelId={labelId} />
@@ -184,6 +185,32 @@ function StarredView() {
           {completed.map(t => <TaskItem key={t.id} task={t} />)}
         </>
       )}
+    </div>
+  )
+}
+
+function WaitingView() {
+  const { tasks } = useStore()
+
+  const active = tasks.filter(t => !t.completed && t.waiting).sort((a, b) => a.order - b.order)
+
+  return (
+    <div className="flex flex-col">
+      <div className="px-4 pt-6 pb-2">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Waiting</h1>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">Tasks blocked on others</p>
+      </div>
+
+      {active.length === 0 && (
+        <div className="px-4 py-10 flex flex-col items-center gap-2 text-center">
+          <span className="text-3xl">&#9203;</span>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Nothing waiting</p>
+          <p className="text-xs text-gray-400 dark:text-gray-600 max-w-xs">
+            Open any task and mark it as waiting to track tasks that are blocked on someone else.
+          </p>
+        </div>
+      )}
+      {active.map(t => <TaskItem key={t.id} task={t} />)}
     </div>
   )
 }

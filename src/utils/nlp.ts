@@ -8,6 +8,8 @@ export interface ParsedTask {
   labelNames: string[]
   recurring?: RecurringConfig
   starred: boolean
+  waiting?: boolean
+  waitingOn?: string
 }
 
 function nextWeekday(name: string, from: Date = new Date()): Date {
@@ -53,6 +55,17 @@ export function parseNL(input: string): ParsedTask {
   let dueTime: string | undefined
   let recurring: RecurringConfig | undefined
   let starred = false
+  let waiting = false
+  let waitingOn: string | undefined
+
+  // Extract ~waitingOn (e.g. ~design team or just ~)
+  const waitingMatch = text.match(/~([^#!]*?)(?=\s*[#!]|\s*$)/)
+  if (waitingMatch) {
+    waiting = true
+    const who = waitingMatch[1].trim()
+    if (who) waitingOn = who
+    text = text.replace(waitingMatch[0], '').trim()
+  }
 
   // Extract !! for starred
   if (text.includes('!!')) {
@@ -118,5 +131,5 @@ export function parseNL(input: string): ParsedTask {
   // Clean up extra spaces
   const title = text.replace(/\s{2,}/g, ' ').trim()
 
-  return { title, dueDate, dueTime, labelNames, recurring, starred }
+  return { title, dueDate, dueTime, labelNames, recurring, starred, waiting: waiting || undefined, waitingOn }
 }

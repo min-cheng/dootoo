@@ -16,6 +16,7 @@ import type { Task, TaskStatus } from '../types'
 import LabelChip from './LabelChip'
 import { formatDueDate, isOverdue } from '../utils/date'
 import InlineAddTask from './InlineAddTask'
+import { Hourglass } from 'lucide-react'
 
 const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
   { id: 'todo', label: 'To Do', color: 'bg-gray-100 dark:bg-gray-800/60' },
@@ -43,11 +44,22 @@ function BoardCard({ task }: { task: Task }) {
       {...attributes}
       {...listeners}
       onClick={() => setSelectedTaskId(task.id)}
-      className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-md transition-shadow space-y-2 select-none"
+      className={`bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border cursor-pointer hover:shadow-md transition-shadow space-y-2 select-none
+        ${task.waiting
+          ? 'border-l-[3px] border-l-amber-400 border-t-gray-100 border-r-gray-100 border-b-gray-100 dark:border-l-amber-500 dark:border-t-gray-700 dark:border-r-gray-700 dark:border-b-gray-700'
+          : 'border-gray-100 dark:border-gray-700'
+        }`}
     >
       <p className={`text-sm leading-snug ${task.completed ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-100'}`}>
         {task.title}
       </p>
+
+      {task.waiting && (
+        <div className="flex items-center gap-1 text-xs text-amber-500 dark:text-amber-400 font-medium">
+          <Hourglass size={10} />
+          {task.waitingOn || 'Waiting'}
+        </div>
+      )}
 
       {(task.dueDate || taskLabels.length > 0) && (
         <div className="flex items-center gap-1.5 flex-wrap">

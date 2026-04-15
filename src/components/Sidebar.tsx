@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Pencil, Trash2, Check, X, CaseUpper,
+  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Hourglass, Pencil, Trash2, Check, X, CaseUpper,
 } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import type { ViewType, Label } from '../types'
@@ -116,6 +116,13 @@ export default function Sidebar() {
           active={view === 'starred'}
           count={tasks.filter(t => !t.completed && t.starred).length || undefined}
           onClick={() => setView('starred')}
+        />
+        <NavItem
+          icon={<Hourglass size={15} />}
+          label="Waiting"
+          active={view === 'waiting'}
+          count={tasks.filter(t => !t.completed && t.waiting).length || undefined}
+          onClick={() => setView('waiting')}
         />
       </nav>
 

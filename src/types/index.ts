@@ -26,6 +26,8 @@ export interface Task {
   recurring?: RecurringConfig
   status: TaskStatus // used for board view
   starred: boolean
+  waiting?: boolean   // blocked / waiting on someone
+  waitingOn?: string  // free-text: who or what you're waiting on
   createdAt: string
   updatedAt: string
   order: number
@@ -42,6 +44,7 @@ export type ViewType =
   | 'upcoming'
   | 'all'
   | 'starred'
+  | 'waiting'
   | 'board'
   | 'calendar'
   | `label:${string}`

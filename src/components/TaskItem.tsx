@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { RotateCcw, Star, ChevronDown } from 'lucide-react'
+import { RotateCcw, Star, ChevronDown, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { Task } from '../types'
 import LabelChip from './LabelChip'
@@ -107,12 +107,18 @@ export default function TaskItem({ task, focused }: Props) {
         </div>
 
         {/* Meta row */}
-        {(task.dueDate || taskLabels.length > 0 || hasSubtasks || task.recurring) && (
+        {(task.dueDate || taskLabels.length > 0 || hasSubtasks || task.recurring || task.waiting) && (
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {task.dueDate && (
               <span className={`text-xs ${overdue ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`}>
                 {formatDueDate(task.dueDate)}
                 {task.dueTime && ` · ${task.dueTime}`}
+              </span>
+            )}
+            {task.waiting && (
+              <span className="flex items-center gap-0.5 text-xs text-amber-500 dark:text-amber-400 font-medium">
+                <Hourglass size={10} />
+                {task.waitingOn || 'Waiting'}
               </span>
             )}
             {task.recurring && (

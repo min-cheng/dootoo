@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag } from 'lucide-react'
+import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import LabelChip, { dotColor } from './LabelChip'
 import type { RecurringPattern } from '../types'
@@ -246,6 +246,31 @@ export default function TaskDetail() {
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Waiting */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+              <Hourglass size={12} /> Waiting
+            </label>
+            <button
+              onClick={() => updateTask(task.id, { waiting: !task.waiting, waitingOn: !task.waiting ? task.waitingOn : undefined })}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors
+                ${task.waiting
+                  ? 'border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-400 font-medium'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
+                }`}
+            >
+              {task.waiting ? 'Waiting on someone' : 'Mark as waiting'}
+            </button>
+            {task.waiting && (
+              <input
+                value={task.waitingOn ?? ''}
+                onChange={e => updateTask(task.id, { waitingOn: e.target.value || undefined })}
+                placeholder="Who or what are you waiting on?"
+                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-400 dark:focus:ring-amber-600"
+              />
             )}
           </div>
 
