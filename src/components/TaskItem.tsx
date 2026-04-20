@@ -3,18 +3,11 @@ import { RotateCcw, Star, ChevronDown, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { Task } from '../types'
 import LabelChip from './LabelChip'
-import { formatDueDate, isOverdue } from '../utils/date'
+import { formatDueDate, isOverdue, formatRecurring } from '../utils/date'
 
 interface Props {
   task: Task
   focused?: boolean
-}
-
-const recurringLabel: Record<string, string> = {
-  daily: 'Every day',
-  weekly: 'Every week',
-  monthly: 'Every month',
-  weekdays: 'Weekdays',
 }
 
 export default function TaskItem({ task, focused }: Props) {
@@ -124,7 +117,7 @@ export default function TaskItem({ task, focused }: Props) {
             {task.recurring && (
               <span className="flex items-center gap-0.5 text-xs text-gray-400 dark:text-gray-500">
                 <RotateCcw size={10} />
-                {recurringLabel[task.recurring.pattern]}
+                {formatRecurring(task.recurring)}
               </span>
             )}
             {hasSubtasks && (

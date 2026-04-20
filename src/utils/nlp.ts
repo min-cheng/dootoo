@@ -80,17 +80,36 @@ export function parseNL(input: string): ParsedTask {
   })
 
   // Extract recurring patterns (must come before date so "every monday" doesn't conflict)
-  const recurringPatterns: Array<[RegExp, RecurringConfig]> = [
-    [/\bevery\s+day\b|\bdaily\b/i, { pattern: 'daily' }],
-    [/\bevery\s+week\b|\bweekly\b/i, { pattern: 'weekly' }],
-    [/\bevery\s+month\b|\bmonthly\b/i, { pattern: 'monthly' }],
-    [/\bevery\s+weekday\b|\bweekdays\b/i, { pattern: 'weekdays' }],
-  ]
-  for (const [re, config] of recurringPatterns) {
-    if (re.test(text)) {
-      recurring = config
-      text = text.replace(re, '').trim()
-      break
+  const nthWords: Record<string, 1 | 2 | 3 | 4 | -1> = {
+    first: 1, '1st': 1, second: 2, '2nd': 2, third: 3, '3rd': 3, fourth: 4, '4th': 4, last: -1,
+  }
+  const dayWords: Record<string, 0 | 1 | 2 | 3 | 4 | 5 | 6> = {
+    sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+  }
+  const nthWeekdayRe = /\b(first|1st|second|2nd|third|3rd|fourth|4th|last)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(?:every\s+)?(?:the\s+)?month\b/i
+  const nthMatch = text.match(nthWeekdayRe)
+  if (nthMatch) {
+    recurring = {
+      pattern: 'monthly-nth-weekday',
+      nth: nthWords[nthMatch[1].toLowerCase()],
+      weekday: dayWords[nthMatch[2].toLowerCase()],
+    }
+    text = text.replace(nthMatch[0], '').trim()
+  }
+
+  if (!recurring) {
+    const recurringPatterns: Array<[RegExp, RecurringConfig]> = [
+      [/\bevery\s+day\b|\bdaily\b/i, { pattern: 'daily' }],
+      [/\bevery\s+week\b|\bweekly\b/i, { pattern: 'weekly' }],
+      [/\bevery\s+month\b|\bmonthly\b/i, { pattern: 'monthly' }],
+      [/\bevery\s+weekday\b|\bweekdays\b/i, { pattern: 'weekdays' }],
+    ]
+    for (const [re, config] of recurringPatterns) {
+      if (re.test(text)) {
+        recurring = config
+        text = text.replace(re, '').trim()
+        break
+      }
     }
   }
 

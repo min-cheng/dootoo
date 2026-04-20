@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, Calendar, RotateCcw, Star, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { parseNL } from '../utils/nlp'
-import { formatDueDate } from '../utils/date'
+import { formatDueDate, formatRecurring } from '../utils/date'
 
 export default function QuickAdd() {
   const { quickAddOpen, setQuickAddOpen, addTask, labels, addLabel } = useStore()
@@ -93,7 +93,7 @@ export default function QuickAdd() {
             {parsed.recurring && (
               <span className="inline-flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2.5 py-1 rounded-full">
                 <RotateCcw size={11} />
-                {parsed.recurring.pattern}
+                {formatRecurring(parsed.recurring)}
               </span>
             )}
             {parsed.starred && (

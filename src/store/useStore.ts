@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import type { Task, Label, ViewType, Subtask } from '../types'
-import { todayStr } from '../utils/date'
+import { todayStr, getNextOccurrence } from '../utils/date'
 
 function uuid(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
@@ -229,6 +229,23 @@ export const useStore = create<AppState>()((set, get) => ({
     const task = get().tasks.find(t => t.id === id)
     if (!task) return
     const completed = !task.completed
+
+    if (completed && task.recurring) {
+      const nextDate = getNextOccurrence(task.recurring, task.dueDate ?? todayStr())
+      set(s => ({
+        tasks: s.tasks.map(t =>
+          t.id === id
+            ? { ...t, completed: false, status: 'todo', completedAt: undefined, dueDate: nextDate, updatedAt: new Date().toISOString() }
+            : t
+        ),
+      }))
+      if (userId) {
+        const updated = get().tasks.find(t => t.id === id)
+        if (updated) syncTask(updated, userId)
+      }
+      return
+    }
+
     set(s => ({
       tasks: s.tasks.map(t =>
         t.id === id

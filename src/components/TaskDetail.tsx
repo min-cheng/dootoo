@@ -2,13 +2,32 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import LabelChip, { dotColor } from './LabelChip'
-import type { RecurringPattern } from '../types'
+import type { RecurringPattern, RecurringConfig } from '../types'
 
 const RECURRING_OPTIONS: { value: RecurringPattern; label: string }[] = [
   { value: 'daily', label: 'Every day' },
   { value: 'weekly', label: 'Every week' },
   { value: 'monthly', label: 'Every month' },
   { value: 'weekdays', label: 'Weekdays' },
+  { value: 'monthly-nth-weekday', label: 'Monthly (nth)' },
+]
+
+const NTH_OPTIONS: { value: RecurringConfig['nth']; label: string }[] = [
+  { value: 1, label: '1st' },
+  { value: 2, label: '2nd' },
+  { value: 3, label: '3rd' },
+  { value: 4, label: '4th' },
+  { value: -1, label: 'Last' },
+]
+
+const DAY_OPTIONS: { value: RecurringConfig['weekday']; label: string }[] = [
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
 ]
 
 export default function TaskDetail() {
@@ -167,7 +186,11 @@ export default function TaskDetail() {
               {RECURRING_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
-                  onClick={() => updateTask(task.id, { recurring: { pattern: opt.value } })}
+                  onClick={() => updateTask(task.id, {
+                    recurring: opt.value === 'monthly-nth-weekday'
+                      ? { pattern: 'monthly-nth-weekday', nth: task.recurring?.nth ?? 1, weekday: task.recurring?.weekday ?? 0 }
+                      : { pattern: opt.value }
+                  })}
                   className={`text-xs px-3 py-1 rounded-full border transition-colors
                     ${task.recurring?.pattern === opt.value
                       ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium'
@@ -178,6 +201,24 @@ export default function TaskDetail() {
                 </button>
               ))}
             </div>
+            {task.recurring?.pattern === 'monthly-nth-weekday' && (
+              <div className="flex gap-2 mt-1">
+                <select
+                  value={task.recurring.nth ?? 1}
+                  onChange={e => updateTask(task.id, { recurring: { ...task.recurring!, nth: Number(e.target.value) as RecurringConfig['nth'] } })}
+                  className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                >
+                  {NTH_OPTIONS.map(o => <option key={o.value} value={o.value!}>{o.label}</option>)}
+                </select>
+                <select
+                  value={task.recurring.weekday ?? 0}
+                  onChange={e => updateTask(task.id, { recurring: { ...task.recurring!, weekday: Number(e.target.value) as RecurringConfig['weekday'] } })}
+                  className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                >
+                  {DAY_OPTIONS.map(o => <option key={o.value} value={o.value!}>{o.label}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Labels */}

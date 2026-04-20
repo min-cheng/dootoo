@@ -5,10 +5,12 @@ export interface Subtask {
   order: number
 }
 
-export type RecurringPattern = 'daily' | 'weekly' | 'monthly' | 'weekdays'
+export type RecurringPattern = 'daily' | 'weekly' | 'monthly' | 'weekdays' | 'monthly-nth-weekday'
 
 export interface RecurringConfig {
   pattern: RecurringPattern
+  weekday?: 0 | 1 | 2 | 3 | 4 | 5 | 6  // 0=Sun; only for monthly-nth-weekday
+  nth?: 1 | 2 | 3 | 4 | -1              // -1=last; only for monthly-nth-weekday
 }
 
 export type TaskStatus = 'todo' | 'inprogress' | 'done'
