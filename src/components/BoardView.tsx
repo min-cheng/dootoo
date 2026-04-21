@@ -88,7 +88,7 @@ function Column({ status, tasks }: { status: TaskStatus; tasks: Task[] }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-2xl p-3 min-h-48 transition-colors ${col.color} ${isOver ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
+      className={`flex flex-col rounded-2xl p-3 min-h-48 h-full transition-colors ${col.color} ${isOver ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
     >
       <div className="flex items-center gap-2 mb-3 px-1">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{col.label}</h3>
