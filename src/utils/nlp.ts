@@ -123,27 +123,43 @@ export function parseNL(input: string): ParsedTask {
   // Extract date keywords
   const today = new Date()
   const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
 
-  const datePatterns: Array<[RegExp, () => Date]> = [
-    [/\btoday\b/i, () => today],
-    [/\btomorrow\b/i, () => addDays(today, 1)],
-    [/\bnext\s+week\b/i, () => addDays(today, 7)],
-    [/\bnext\s+month\b/i, () => addDays(today, 30)],
-    ...dayNames.map<[RegExp, () => Date]>(d => [
-      new RegExp(`\\bnext\\s+${d}\\b`, 'i'),
-      () => nextWeekday(d, today),
-    ]),
-    ...dayNames.map<[RegExp, () => Date]>(d => [
-      new RegExp(`\\b${d}\\b`, 'i'),
-      () => nextWeekday(d, today),
-    ]),
-  ]
+  // Try "Month Day" format first, e.g. "june 1", "December 25th", "jan 3rd"
+  const monthDayRe = new RegExp(`\\b(${monthNames.join('|')})\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b`, 'i')
+  const monthDayMatch = text.match(monthDayRe)
+  if (monthDayMatch) {
+    const monthIdx = monthNames.indexOf(monthDayMatch[1].toLowerCase())
+    const day = parseInt(monthDayMatch[2])
+    const candidate = new Date(today.getFullYear(), monthIdx, day)
+    // If the date has already passed this year, use next year
+    const resolved = candidate < today ? new Date(today.getFullYear() + 1, monthIdx, day) : candidate
+    dueDate = format(resolved, 'yyyy-MM-dd')
+    text = text.replace(monthDayMatch[0], '').trim()
+  }
 
-  for (const [re, getDate] of datePatterns) {
-    if (re.test(text)) {
-      dueDate = format(getDate(), 'yyyy-MM-dd')
-      text = text.replace(re, '').trim()
-      break
+  if (!dueDate) {
+    const datePatterns: Array<[RegExp, () => Date]> = [
+      [/\btoday\b/i, () => today],
+      [/\btomorrow\b/i, () => addDays(today, 1)],
+      [/\bnext\s+week\b/i, () => addDays(today, 7)],
+      [/\bnext\s+month\b/i, () => addDays(today, 30)],
+      ...dayNames.map<[RegExp, () => Date]>(d => [
+        new RegExp(`\\bnext\\s+${d}\\b`, 'i'),
+        () => nextWeekday(d, today),
+      ]),
+      ...dayNames.map<[RegExp, () => Date]>(d => [
+        new RegExp(`\\b${d}\\b`, 'i'),
+        () => nextWeekday(d, today),
+      ]),
+    ]
+
+    for (const [re, getDate] of datePatterns) {
+      if (re.test(text)) {
+        dueDate = format(getDate(), 'yyyy-MM-dd')
+        text = text.replace(re, '').trim()
+        break
+      }
     }
   }
 
