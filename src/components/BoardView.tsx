@@ -88,7 +88,7 @@ function Column({ status, tasks }: { status: TaskStatus; tasks: Task[] }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-2xl p-3 min-h-48 h-full transition-colors ${col.color} ${isOver ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
+      className={`flex flex-col rounded-2xl p-3 min-h-48 transition-colors ${col.color} ${isOver ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
     >
       <div className="flex items-center gap-2 mb-3 px-1">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{col.label}</h3>
@@ -157,7 +157,7 @@ export default function BoardView() {
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-x-auto px-6 pb-6">
-          <div className="grid grid-cols-3 gap-4 min-w-[700px] h-full">
+          <div className="grid grid-cols-3 gap-4 min-w-[700px]">
             {COLUMNS.map(col => (
               <Column key={col.id} status={col.id} tasks={tasksByStatus(col.id)} />
             ))}
