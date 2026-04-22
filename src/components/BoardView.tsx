@@ -117,7 +117,12 @@ export default function BoardView() {
   )
 
   const tasksByStatus = (status: TaskStatus) =>
-    tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order)
+    tasks.filter(t => t.status === status).sort((a, b) => {
+      if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate)
+      if (a.dueDate) return -1
+      if (b.dueDate) return 1
+      return a.order - b.order
+    })
 
   const activeTask = tasks.find(t => t.id === activeId)
 
