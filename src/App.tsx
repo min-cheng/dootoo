@@ -127,8 +127,8 @@ export default function App() {
       {/* Mobile FAB */}
       <button
         onClick={() => setQuickAddOpen(true)}
-        className="md:hidden fixed bottom-20 right-4 z-40 w-13 h-13 rounded-full bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white shadow-lg flex items-center justify-center transition-colors"
-        style={{ width: 52, height: 52 }}
+        className="md:hidden fixed right-4 z-40 rounded-full bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white shadow-lg flex items-center justify-center transition-colors"
+        style={{ width: 52, height: 52, bottom: 'calc(68px + env(safe-area-inset-bottom))' }}
         aria-label="Add task"
       >
         <Plus size={24} />

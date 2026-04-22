@@ -17,6 +17,8 @@ export default function BottomNav() {
   const today = new Date().toISOString().slice(0, 10)
   const todayCount = tasks.filter(t => !t.completed && t.dueDate === today).length
 
+  const isMoreView = view === 'starred' || view === 'waiting' || view === 'calendar' || view.toString().startsWith('label:')
+
   const mainNav: { id: ViewType; icon: React.ReactNode; label: string; badge?: number }[] = [
     { id: 'today', icon: <Sun size={22} />, label: 'Today', badge: todayCount || undefined },
     { id: 'upcoming', icon: <CalendarDays size={22} />, label: 'Upcoming' },
@@ -54,17 +56,17 @@ export default function BottomNav() {
         <button
           onClick={() => setMoreOpen(v => !v)}
           className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors
-            ${moreOpen ? 'text-violet-600 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`}
+            ${moreOpen || isMoreView ? 'text-violet-600 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`}
         >
           <MoreHorizontal size={22} />
           <span className="text-[10px] font-medium">More</span>
         </button>
       </nav>
 
-      {/* More sheet backdrop */}
+      {/* More sheet backdrop — z-30 so nav bar (z-40) stays on top */}
       {moreOpen && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
+          className="fixed inset-0 z-30 md:hidden"
           onClick={() => setMoreOpen(false)}
         />
       )}
