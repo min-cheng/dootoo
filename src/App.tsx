@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { Plus } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStore } from './store/useStore'
 import Auth from './components/Auth'
 import Sidebar from './components/Sidebar'
+import BottomNav from './components/BottomNav'
 import TaskList from './components/TaskList'
 import TaskDetail from './components/TaskDetail'
 import QuickAdd from './components/QuickAdd'
@@ -108,7 +110,7 @@ export default function App() {
     <div className="h-full flex bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <Sidebar />
 
-      <main className={`flex-1 overflow-y-auto min-w-0 ${serifMode ? 'font-serif-mode' : ''}`}>
+      <main className={`flex-1 overflow-y-auto min-w-0 pb-14 md:pb-0 ${serifMode ? 'font-serif-mode' : ''}`}>
         {isListView && (
           <div className="max-w-2xl mx-auto pb-24">
             <TaskList view={view} />
@@ -120,6 +122,17 @@ export default function App() {
 
       {selectedTaskId && <TaskDetail />}
       <QuickAdd />
+      <BottomNav />
+
+      {/* Mobile FAB */}
+      <button
+        onClick={() => setQuickAddOpen(true)}
+        className="md:hidden fixed bottom-20 right-4 z-40 w-13 h-13 rounded-full bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white shadow-lg flex items-center justify-center transition-colors"
+        style={{ width: 52, height: 52 }}
+        aria-label="Add task"
+      >
+        <Plus size={24} />
+      </button>
 
       <div className="fixed bottom-4 right-4 z-10 hidden lg:flex items-center gap-1.5 text-xs text-gray-300 dark:text-gray-700 pointer-events-none select-none">
         <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 dark:text-gray-600">Q</kbd>

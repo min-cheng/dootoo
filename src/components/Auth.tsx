@@ -3,24 +3,18 @@ import { supabase } from '../lib/supabase'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!email.trim() || !password) return
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: window.location.href },
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     if (error) {
       setError(error.message)
-      setLoading(false)
-    } else {
-      setSent(true)
       setLoading(false)
     }
   }
@@ -35,43 +29,36 @@ export default function Auth() {
           <span className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">dootoo</span>
         </div>
 
-        {sent ? (
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Check your email</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
-              We sent a magic link to <strong className="text-gray-700 dark:text-gray-300">{email}</strong>. Click it to sign in — no password needed.
-            </p>
-            <button
-              onClick={() => setSent(false)}
-              className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              ← Use a different email
-            </button>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">We'll email you a magic link.</p>
-            </div>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoFocus
-              className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow"
-            />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || !email.trim()}
-              className="w-full py-2.5 text-sm font-medium rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors disabled:opacity-40"
-            >
-              {loading ? 'Sending…' : 'Send magic link'}
-            </button>
-          </form>
-        )}
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Email"
+            autoComplete="email"
+            autoFocus
+            className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Password"
+            autoComplete="current-password"
+            className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow"
+          />
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading || !email.trim() || !password}
+            className="w-full py-2.5 text-sm font-medium rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors disabled:opacity-40"
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
       </div>
     </div>
   )

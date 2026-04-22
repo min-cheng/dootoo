@@ -93,11 +93,18 @@ export default function TaskDetail() {
         onClick={() => setSelectedTaskId(null)}
       />
 
-      {/* Panel */}
+      {/* Panel — right sheet on desktop, bottom sheet on mobile */}
       <div
         ref={panelRef}
-        className="slide-in-right fixed right-0 top-0 bottom-0 z-30 w-96 bg-white dark:bg-gray-900 shadow-2xl flex flex-col overflow-hidden border-l border-gray-100 dark:border-gray-800"
+        className="task-detail-panel fixed z-30 bg-white dark:bg-gray-900 shadow-2xl flex flex-col overflow-hidden
+          bottom-14 left-0 right-0 max-h-[85vh] rounded-t-2xl border-t border-gray-100 dark:border-gray-800
+          md:inset-y-0 md:right-0 md:left-auto md:bottom-0 md:w-96 md:max-h-none md:rounded-none md:border-t-0 md:border-l"
       >
+        {/* Drag handle — mobile only */}
+        <div className="flex justify-center pt-2.5 pb-1 md:hidden flex-shrink-0">
+          <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <button

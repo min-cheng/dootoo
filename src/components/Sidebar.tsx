@@ -79,7 +79,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-56 flex-shrink-0 h-full flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 py-4 px-3 overflow-y-auto no-scrollbar">
+    <aside className="hidden md:flex w-56 flex-shrink-0 h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 py-4 px-3 overflow-y-auto no-scrollbar">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-3 mb-6">
         <svg viewBox="0 0 48 46" width="20" height="20" fill="none" className="flex-shrink-0">

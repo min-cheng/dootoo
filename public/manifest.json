@@ -1,0 +1,17 @@
+{
+  "name": "dootoo",
+  "short_name": "dootoo",
+  "description": "Your personal task manager",
+  "start_url": "/dootoo/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#863bff",
+  "icons": [
+    {
+      "src": "/dootoo/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
