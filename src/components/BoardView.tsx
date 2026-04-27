@@ -81,9 +81,16 @@ function BoardCard({ task }: { task: Task }) {
   )
 }
 
+const DONE_PREVIEW_COUNT = 10
+
 function Column({ status, tasks }: { status: TaskStatus; tasks: Task[] }) {
   const col = COLUMNS.find(c => c.id === status)!
   const { setNodeRef, isOver } = useDroppable({ id: status })
+  const [showAll, setShowAll] = useState(false)
+
+  const isDone = status === 'done'
+  const displayTasks = isDone && !showAll ? tasks.slice(0, DONE_PREVIEW_COUNT) : tasks
+  const hiddenCount = tasks.length - DONE_PREVIEW_COUNT
 
   return (
     <div
@@ -95,11 +102,20 @@ function Column({ status, tasks }: { status: TaskStatus; tasks: Task[] }) {
         <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums">{tasks.length}</span>
       </div>
 
-      <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={displayTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2 flex-1">
-          {tasks.map(task => <BoardCard key={task.id} task={task} />)}
+          {displayTasks.map(task => <BoardCard key={task.id} task={task} />)}
         </div>
       </SortableContext>
+
+      {isDone && hiddenCount > 0 && (
+        <button
+          onClick={() => setShowAll(v => !v)}
+          className="mt-3 w-full text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-1"
+        >
+          {showAll ? 'Show less' : `Show ${hiddenCount} more completed`}
+        </button>
+      )}
 
       <div className="mt-2">
         <InlineAddTask defaultStatus={status} />
@@ -116,13 +132,23 @@ export default function BoardView() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
-  const tasksByStatus = (status: TaskStatus) =>
-    tasks.filter(t => t.status === status).sort((a, b) => {
+  const tasksByStatus = (status: TaskStatus) => {
+    const filtered = tasks.filter(t => t.status === status)
+    if (status === 'done') {
+      return filtered.sort((a, b) => {
+        if (a.completedAt && b.completedAt) return b.completedAt.localeCompare(a.completedAt)
+        if (a.completedAt) return -1
+        if (b.completedAt) return 1
+        return b.order - a.order
+      })
+    }
+    return filtered.sort((a, b) => {
       if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate)
       if (a.dueDate) return -1
       if (b.dueDate) return 1
       return a.order - b.order
     })
+  }
 
   const activeTask = tasks.find(t => t.id === activeId)
 
