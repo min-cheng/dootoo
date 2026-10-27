@@ -112,10 +112,10 @@ export default function App() {
   }
 
   return (
-    <div className="h-full flex bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div className={`h-full flex bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 ${serifMode ? 'font-serif-mode' : ''}`}>
       <Sidebar />
 
-      <main className={`flex-1 overflow-y-auto min-w-0 pb-14 md:pb-0 ${serifMode ? 'font-serif-mode' : ''}`}>
+      <main className="flex-1 overflow-y-auto min-w-0 pb-14 md:pb-0">
         {isListView && (
           <div className="max-w-2xl mx-auto pb-24">
             <TaskList view={view} />

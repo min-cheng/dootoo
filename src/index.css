@@ -87,6 +87,15 @@
   font-weight: 500;
 }
 
+/* iOS Safari zooms the page into any focused field under 16px and doesn't zoom back out */
+@media (max-width: 767px) {
+  input.text-xs, input.text-sm,
+  textarea.text-xs, textarea.text-sm,
+  select.text-xs, select.text-sm {
+    font-size: 16px;
+  }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
