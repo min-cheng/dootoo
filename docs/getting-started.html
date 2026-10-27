@@ -45,6 +45,7 @@
   a { color: var(--accent); text-underline-offset: 3px; }
   a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
   b { font-weight: 600; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; background: var(--accent-soft); padding: 1px 5px; border-radius: 5px; }
 
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
   h1 {
@@ -241,6 +242,7 @@
       <dt>More</dt><dd>Starred, Waiting, Calendar, your labels, and a dark-mode switch.</dd>
     </dl>
     <p>Tap the circle next to a task to check it off. Tap the task itself to add notes, smaller steps, or labels.</p>
+    <p>To delete a task, tap it, then tap the trash can at the top of the panel that opens. It works the same on the laptop. Deleting is instant and can't be undone.</p>
   </section>
 
   <section aria-labelledby="password">
@@ -257,20 +259,20 @@
       <span class="eyebrow">Make it better</span>
       <h2 id="improve">Ideas, bugs, or want to tinker?</h2>
     </div>
-    <p>dootoo's code is public on GitHub, a site where people store and share code. You're welcome to suggest changes or make them yourself.</p>
+    <p>dootoo's code is public on GitHub. You're welcome to suggest changes or make them yourself.</p>
     <div class="links">
       <a class="link-row" href="https://github.com/min-cheng/dootoo/issues/new">
         <span class="what">Suggest a feature or report a problem</span>
-        <span class="why">Write it up as a new “issue.” You'll need a free GitHub account. Or just tell Min.</span>
+        <span class="why">Open an issue, or just tell Min.</span>
         <span class="url">github.com/min-cheng/dootoo/issues</span>
       </a>
       <a class="link-row" href="https://github.com/min-cheng/dootoo">
         <span class="what">Look at the code</span>
-        <span class="why">Start with the README, which explains how the pieces fit together.</span>
+        <span class="why">The README covers the stack: React, Vite, Supabase, Vercel.</span>
         <span class="url">github.com/min-cheng/dootoo</span>
       </a>
     </div>
-    <p>Want to change the code yourself? Ask Min to add you to the project. If you use Claude Code, it reads the project's notes for itself and can help you make the change.</p>
+    <p>Want to push changes? Ask Min to add you as a collaborator. Pushes to <code>main</code> deploy automatically, and pull requests get a Vercel preview link. If you use Claude Code, it picks up the repo's <code>CLAUDE.md</code>.</p>
   </section>
 
   <footer>Questions? Ask Min.</footer>
