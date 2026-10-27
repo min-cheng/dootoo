@@ -60,7 +60,6 @@ export default function AboutView() {
     <div className="flex flex-col">
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">About dootoo</h1>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">How to get around, and how to make it better</p>
       </div>
 
       <Section title="Install it">
