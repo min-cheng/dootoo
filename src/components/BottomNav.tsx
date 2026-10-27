@@ -148,14 +148,10 @@ export default function BottomNav() {
           </button>
           <button
             onClick={toggleSerifMode}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-colors
-              ${serifMode
-                ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400'
-                : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-              }`}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm"
           >
             <CaseUpper size={16} />
-            Serif
+            {serifMode ? 'Sans serif' : 'Serif'}
           </button>
           <button
             onClick={() => { setView('about'); setMoreOpen(false) }}

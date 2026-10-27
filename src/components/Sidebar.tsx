@@ -302,14 +302,10 @@ export default function Sidebar() {
       {/* Serif mode toggle */}
       <button
         onClick={toggleSerifMode}
-        className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors
-          ${serifMode
-            ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-            : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300'
-          }`}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
       >
         <CaseUpper size={15} />
-        Serif
+        {serifMode ? 'Sans serif' : 'Serif'}
       </button>
 
       {/* Dark mode toggle */}
