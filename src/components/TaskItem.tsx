@@ -3,7 +3,11 @@ import { RotateCcw, Star, ChevronDown, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { Task } from '../types'
 import LabelChip from './LabelChip'
-import { formatDueDate, isOverdue, formatRecurring } from '../utils/date'
+import { formatDueDate, isOverdue, formatRecurring, todayStr } from '../utils/date'
+
+function lowerRelative(label: string) {
+  return label === 'Today' || label === 'Tomorrow' ? label.toLowerCase() : label
+}
 
 interface Props {
   task: Task
@@ -17,6 +21,7 @@ export default function TaskItem({ task, focused }: Props) {
   const subtasksDone = task.subtasks.filter(s => s.completed).length
   const hasSubtasks = task.subtasks.length > 0
   const overdue = task.dueDate && !task.completed && isOverdue(task.dueDate)
+  const notStarted = !!task.startDate && !task.completed && task.startDate > todayStr()
   const checkRef = useRef<HTMLButtonElement>(null)
 
   function handleCheck(e: React.MouseEvent) {
@@ -100,11 +105,16 @@ export default function TaskItem({ task, focused }: Props) {
         </div>
 
         {/* Meta row */}
-        {(task.dueDate || taskLabels.length > 0 || hasSubtasks || task.recurring || task.waiting) && (
+        {(task.dueDate || notStarted || taskLabels.length > 0 || hasSubtasks || task.recurring || task.waiting) && (
           <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {notStarted && (
+              <span className="text-xs text-emerald-600 dark:text-emerald-400">
+                Starts {lowerRelative(formatDueDate(task.startDate!))}
+              </span>
+            )}
             {task.dueDate && (
               <span className={`text-xs ${overdue ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`}>
-                {formatDueDate(task.dueDate)}
+                {task.startDate && !overdue ? `Due ${lowerRelative(formatDueDate(task.dueDate))}` : formatDueDate(task.dueDate)}
                 {task.dueTime && ` · ${task.dueTime}`}
               </span>
             )}

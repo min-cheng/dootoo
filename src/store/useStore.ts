@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import type { Task, Label, ViewType, Subtask } from '../types'
-import { todayStr, getNextOccurrence } from '../utils/date'
+import { todayStr, getNextOccurrence, shiftDate, daysBetween } from '../utils/date'
 
 function uuid(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
@@ -16,6 +16,7 @@ function taskToRow(task: Task, userId: string) {
     notes: task.notes,
     completed: task.completed,
     completed_at: task.completedAt ?? null,
+    start_date: task.startDate ?? null,
     due_date: task.dueDate ?? null,
     due_time: task.dueTime ?? null,
     label_ids: task.labelIds,
@@ -39,6 +40,7 @@ function rowToTask(row: any): Task {
     notes: row.notes ?? '',
     completed: row.completed ?? false,
     completedAt: row.completed_at ?? undefined,
+    startDate: row.start_date ?? undefined,
     dueDate: row.due_date ?? undefined,
     dueTime: row.due_time ?? undefined,
     labelIds: row.label_ids ?? [],
@@ -182,6 +184,7 @@ export const useStore = create<AppState>()((set, get) => ({
       title: partial.title ?? 'Untitled',
       notes: partial.notes ?? '',
       completed: partial.completed ?? false,
+      startDate: partial.startDate,
       dueDate: partial.dueDate,
       dueTime: partial.dueTime,
       labelIds: partial.labelIds ?? [],
@@ -231,11 +234,19 @@ export const useStore = create<AppState>()((set, get) => ({
     const completed = !task.completed
 
     if (completed && task.recurring) {
-      const nextDate = getNextOccurrence(task.recurring, task.dueDate ?? todayStr())
+      let dueDate = task.dueDate
+      let startDate = task.startDate
+      if (startDate && !dueDate) {
+        startDate = getNextOccurrence(task.recurring, startDate)
+      } else {
+        dueDate = getNextOccurrence(task.recurring, task.dueDate ?? todayStr())
+        // Keep the same lead time between start and due on the next round
+        if (startDate && task.dueDate) startDate = shiftDate(startDate, daysBetween(task.dueDate, dueDate))
+      }
       set(s => ({
         tasks: s.tasks.map(t =>
           t.id === id
-            ? { ...t, completed: false, status: 'todo', completedAt: undefined, dueDate: nextDate, updatedAt: new Date().toISOString() }
+            ? { ...t, completed: false, status: 'todo', completedAt: undefined, dueDate, startDate, updatedAt: new Date().toISOString() }
             : t
         ),
       }))

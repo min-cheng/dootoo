@@ -5,6 +5,7 @@ import {
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import type { ViewType, Label } from '../types'
 import { dotColor } from './LabelChip'
+import { todayStr, isInToday } from '../utils/date'
 
 interface NavItemProps {
   icon: React.ReactNode
@@ -63,9 +64,9 @@ export default function Sidebar() {
     if (view === `label:${id}`) setView('today')
   }
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayStr()
 
-  const todayCount = tasks.filter(t => !t.completed && t.dueDate === today).length
+  const todayCount = tasks.filter(t => isInToday(t, today)).length
   const allCount = tasks.filter(t => !t.completed).length
 
   const labelCount = (id: string) => tasks.filter(t => !t.completed && t.labelIds.includes(id)).length

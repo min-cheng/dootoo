@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import type { User } from '@supabase/supabase-js'
 import { Plus } from 'lucide-react'
 import { supabase, openedFromRecoveryLink } from './lib/supabase'
@@ -136,8 +137,12 @@ export default function App() {
 
       {/* Mobile FAB */}
       <button
-        onClick={() => setQuickAddOpen(true)}
-        className="md:hidden fixed right-4 z-40 rounded-full bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white shadow-lg flex items-center justify-center transition-colors"
+        onClick={() => {
+          // iOS only raises the keyboard when focus happens inside the tap itself
+          flushSync(() => setQuickAddOpen(true))
+          document.getElementById('quick-add-input')?.focus()
+        }}
+        className="md:hidden fixed right-4 z-[25] rounded-full bg-violet-500 hover:bg-violet-600 active:bg-violet-700 text-white shadow-lg flex items-center justify-center transition-colors"
         style={{ width: 52, height: 52, bottom: 'calc(68px + env(safe-area-inset-bottom))' }}
         aria-label="Add task"
       >

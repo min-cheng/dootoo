@@ -21,6 +21,7 @@ export interface Task {
   notes: string
   completed: boolean
   completedAt?: string
+  startDate?: string // YYYY-MM-DD; shows in Today from this day until done
   dueDate?: string   // YYYY-MM-DD
   dueTime?: string   // HH:MM
   labelIds: string[]

@@ -6,6 +6,7 @@ import {
 import { useStore } from '../store/useStore'
 import type { ViewType } from '../types'
 import { dotColor } from './LabelChip'
+import { todayStr, isInToday } from '../utils/date'
 
 export default function BottomNav() {
   const {
@@ -14,8 +15,8 @@ export default function BottomNav() {
   } = useStore()
   const [moreOpen, setMoreOpen] = useState(false)
 
-  const today = new Date().toISOString().slice(0, 10)
-  const todayCount = tasks.filter(t => !t.completed && t.dueDate === today).length
+  const today = todayStr()
+  const todayCount = tasks.filter(t => isInToday(t, today)).length
 
   const isMoreView = view === 'starred' || view === 'waiting' || view === 'calendar' || view === 'about' || view.toString().startsWith('label:')
 

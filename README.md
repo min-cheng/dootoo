@@ -31,6 +31,7 @@ The app used to be published at `min-cheng.github.io/dootoo` through GitHub Page
 - Views: Today, Upcoming, All, Board (to do / in progress / done), Calendar, Starred, Waiting, and one per label
 - Natural-language quick add, e.g. `call mom tomorrow at 3pm #family !!` (see `src/utils/nlp.ts`)
   - Dates: `today`, `tomorrow`, `next week`, `next month`, a weekday (`friday`, `next friday`), a full month name and day (`june 15`)
+  - Start dates: `from wednesday by friday` sets a start date and a due date. A started task shows in Today every day until it's done.
   - Time: `at 3pm`, `at 3:30pm`, `at 15:00`
   - Repeats: `every day`/`daily`, `every week`/`weekly`, `every month`/`monthly`, `every weekday`, `first sunday of every month`, `last friday of the month`
   - `#label` adds a label, `!!` stars it, `~name` marks it as waiting on someone
@@ -59,7 +60,7 @@ docs/                Human-facing guides
 
 Two tables, both with a `user_id` column tied to the signed-in user:
 
-- **tasks**: `id, user_id, title, notes, completed, completed_at, due_date, due_time, label_ids, subtasks (json), recurring (json), status, starred, waiting, waiting_on, created_at, updated_at, order`
+- **tasks**: `id, user_id, title, notes, completed, completed_at, start_date, due_date, due_time, label_ids, subtasks (json), recurring (json), status, starred, waiting, waiting_on, created_at, updated_at, order`
 - **labels**: `id, user_id, name, color`
 
 Row-level security is on: a logged-out visitor gets zero rows back (checked 2026-10-27). The table definitions and security rules live only in the Supabase dashboard, not in this repo.

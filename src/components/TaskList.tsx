@@ -2,7 +2,7 @@ import { useStore } from '../store/useStore'
 import type { ViewType } from '../types'
 import TaskItem from './TaskItem'
 import InlineAddTask from './InlineAddTask'
-import { todayStr, getUpcomingDays, getDayLabel, isOverdue } from '../utils/date'
+import { todayStr, getUpcomingDays, getDayLabel, isOverdue, isInToday } from '../utils/date'
 import { format } from 'date-fns'
 
 interface Props {
@@ -47,7 +47,7 @@ function TodayView() {
 
   const overdue = tasks.filter(t => !t.completed && t.dueDate && isOverdue(t.dueDate) && t.dueDate !== today)
     .sort((a, b) => a.order - b.order)
-  const todayTasks = tasks.filter(t => !t.completed && t.dueDate === today)
+  const todayTasks = tasks.filter(t => isInToday(t, today))
     .sort((a, b) => a.order - b.order)
   const completed = tasks.filter(t => t.completed && t.completedAt && t.completedAt.slice(0, 10) === today)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
@@ -91,8 +91,8 @@ function UpcomingView() {
   const { tasks } = useStore()
   const days = getUpcomingDays(14)
 
-  const withDate = tasks.filter(t => !t.completed && t.dueDate)
-  const noDate = tasks.filter(t => !t.completed && !t.dueDate)
+  const withDate = tasks.filter(t => !t.completed && (t.dueDate || t.startDate))
+  const noDate = tasks.filter(t => !t.completed && !t.dueDate && !t.startDate)
 
   return (
     <div className="flex flex-col">
@@ -102,7 +102,7 @@ function UpcomingView() {
       </div>
 
       {days.map(day => {
-        const dayTasks = withDate.filter(t => t.dueDate === day).sort((a, b) => a.order - b.order)
+        const dayTasks = withDate.filter(t => (t.dueDate ?? t.startDate) === day).sort((a, b) => a.order - b.order)
         return (
           <div key={day}>
             <SectionHeader title={getDayLabel(day)} />

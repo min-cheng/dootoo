@@ -12,12 +12,27 @@ import {
   parseISO,
   differenceInCalendarDays,
 } from 'date-fns'
-import type { RecurringConfig } from '../types'
+import type { RecurringConfig, Task } from '../types'
 
 export { isToday, isTomorrow, startOfDay, addDays, isBefore, isAfter, parseISO, differenceInCalendarDays }
 
 export function todayStr(): string {
   return format(new Date(), 'yyyy-MM-dd')
+}
+
+export function shiftDate(dateStr: string, days: number): string {
+  return format(addDays(parseISO(dateStr), days), 'yyyy-MM-dd')
+}
+
+export function daysBetween(from: string, to: string): number {
+  return differenceInCalendarDays(parseISO(to), parseISO(from))
+}
+
+// Due today, or started and not yet due. Overdue tasks get their own section.
+export function isInToday(task: Task, today: string): boolean {
+  if (task.completed) return false
+  if (task.dueDate === today) return true
+  return !!task.startDate && task.startDate <= today && (!task.dueDate || task.dueDate > today)
 }
 
 export function dateFromStr(str: string): Date {

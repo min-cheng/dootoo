@@ -35,6 +35,7 @@ function Steps({ items }: { items: ReactNode[] }) {
 
 const examples: { typed: ReactNode; result: string }[] = [
   { typed: <>Call the plumber <Hl>tomorrow at 9am</Hl></>, result: 'Due tomorrow at 9:00 am' },
+  { typed: <>Rewrite website copy <Hl>from wednesday</Hl> <Hl>by friday</Hl></>, result: 'In Today every day from Wednesday until done, due Friday' },
   { typed: <>Pay water bill <Hl>june 15</Hl> <Hl>#home</Hl></>, result: 'Due June 15, with a “home” label' },
   { typed: <>Book flights <Hl>!!</Hl></>, result: "Starred, so it's easy to find" },
   { typed: <>Pick paint colors <Hl>~Min</Hl></>, result: 'Filed under Waiting, as waiting on Min' },
@@ -93,6 +94,7 @@ export default function AboutView() {
         </div>
         <p className="text-xs text-gray-400 dark:text-gray-500">
           Dates it understands: today, tomorrow, next week, a day like friday, or a date like june 15 (spell out the month). Times: at 3pm or at 3:30pm.
+          Put <span className="font-medium">from</span> before a date to set when you start, and <span className="font-medium">by</span> before the deadline. You can also set a start date in the task panel.
         </p>
       </Section>
 

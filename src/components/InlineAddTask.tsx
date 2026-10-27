@@ -37,11 +37,14 @@ export default function InlineAddTask({ defaultDueDate, defaultStatus, onAdd }: 
 
     const id = addTask({
       title: parsed.title || trimmed,
-      dueDate: parsed.dueDate ?? defaultDueDate,
+      startDate: parsed.startDate,
+      dueDate: parsed.dueDate ?? (parsed.startDate ? undefined : defaultDueDate),
       dueTime: parsed.dueTime,
       labelIds,
       recurring: parsed.recurring,
       starred: parsed.starred,
+      waiting: parsed.waiting,
+      waitingOn: parsed.waitingOn,
       status: defaultStatus ?? 'todo',
     })
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Calendar, RotateCcw, Star, Hourglass } from 'lucide-react'
+import { Search, Calendar, RotateCcw, Star, Hourglass, Play } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { parseNL } from '../utils/nlp'
 import { formatDueDate, formatRecurring } from '../utils/date'
@@ -39,6 +39,7 @@ export default function QuickAdd() {
 
     addTask({
       title: parsed.title || trimmed,
+      startDate: parsed.startDate,
       dueDate: parsed.dueDate,
       dueTime: parsed.dueTime,
       labelIds,
@@ -68,6 +69,7 @@ export default function QuickAdd() {
         <div className="flex items-center gap-3 px-5 py-4">
           <Search size={16} className="text-gray-400 flex-shrink-0" />
           <input
+            id="quick-add-input"
             ref={inputRef}
             value={value}
             onChange={e => setValue(e.target.value)}
@@ -81,12 +83,18 @@ export default function QuickAdd() {
         </div>
 
         {/* NLP preview */}
-        {parsed && (parsed.dueDate || parsed.labelNames.length > 0 || parsed.recurring || parsed.starred || parsed.waiting) && (
+        {parsed && (parsed.dueDate || parsed.startDate || parsed.labelNames.length > 0 || parsed.recurring || parsed.starred || parsed.waiting) && (
           <div className="px-5 pb-3 pt-0 flex flex-wrap gap-2 border-t border-gray-50 dark:border-gray-800">
+            {parsed.startDate && (
+              <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 rounded-full">
+                <Play size={11} />
+                Starts {formatDueDate(parsed.startDate)}
+              </span>
+            )}
             {parsed.dueDate && (
               <span className="inline-flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full">
                 <Calendar size={11} />
-                {formatDueDate(parsed.dueDate)}
+                {parsed.startDate && 'Due '}{formatDueDate(parsed.dueDate)}
                 {parsed.dueTime && ` at ${parsed.dueTime}`}
               </span>
             )}
@@ -123,7 +131,7 @@ export default function QuickAdd() {
             <span><kbd className="font-mono">Esc</kbd> to cancel</span>
           </div>
           <div className="text-xs text-gray-400 dark:text-gray-600 space-x-2">
-            <span className="opacity-60">tomorrow · at 3pm · #label · !! · ~waiting</span>
+            <span className="opacity-60">tomorrow · at 3pm · from monday · #label · !! · ~waiting</span>
           </div>
         </div>
       </div>

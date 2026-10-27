@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass } from 'lucide-react'
+import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass, Play } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import LabelChip, { dotColor } from './LabelChip'
 import type { RecurringPattern, RecurringConfig } from '../types'
@@ -151,6 +151,21 @@ export default function TaskDetail() {
               className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent resize-none focus:outline-none placeholder-gray-300 dark:placeholder-gray-700 leading-relaxed"
               placeholder="Add notes…"
             />
+          </div>
+
+          {/* Start date */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+              <Play size={12} /> Start date
+            </label>
+            <input
+              type="date"
+              value={task.startDate ?? ''}
+              max={task.dueDate}
+              onChange={e => updateTask(task.id, { startDate: e.target.value || undefined })}
+              className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400 dark:focus:ring-blue-600"
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Shows in Today from this day until it's done.</p>
           </div>
 
           {/* Due date & time */}
