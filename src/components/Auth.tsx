@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 
 type Mode = 'signin' | 'signup' | 'forgot'
 
-const inputClass = 'w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow'
+const inputClass = 'w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow'
 const buttonClass = 'w-full py-2.5 text-sm font-medium rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors disabled:opacity-40'
 const linkClass = 'text-violet-600 dark:text-violet-400 hover:underline font-medium'
 
@@ -17,6 +17,13 @@ const buttonLabels: Record<Mode, [idle: string, busy: string]> = {
   signin: ['Sign in', 'Signing in…'],
   signup: ['Create account', 'Creating account…'],
   forgot: ['Email me a reset link', 'Sending…'],
+}
+
+function friendlyError(message: string): string {
+  if (message === 'Invalid login credentials') return "That email and password don't match. Try again or tap Forgot password?"
+  if (message === 'User already registered') return "There's already an account with this email. Sign in instead."
+  if (/rate limit/i.test(message)) return 'Too many emails sent. Wait an hour and try again.'
+  return message
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -55,15 +62,16 @@ export default function Auth() {
     if (mode === 'signin') {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
       if (error) {
-        setError(error.message)
+        setError(friendlyError(error.message))
         setLoading(false)
       }
     } else if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email: email.trim(), password })
+      const { data, error } = await supabase.auth.signUp({ email: email.trim(), password })
       if (error) {
-        setError(error.message)
+        setError(friendlyError(error.message))
         setLoading(false)
-      } else {
+      } else if (!data.session) {
+        // Only when email confirmation is on; otherwise the new account is signed straight in
         setSuccess('Account created! Check your email to confirm, then sign in.')
         setMode('signin')
         setPassword('')
@@ -72,7 +80,7 @@ export default function Auth() {
     } else {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin })
       setLoading(false)
-      if (error) setError(error.message)
+      if (error) setError(friendlyError(error.message))
       else setSuccess('Check your email for a link to set a new password.')
     }
   }

@@ -40,8 +40,8 @@ export default function LabelChip({ label, onRemove, size = 'sm' }: Props) {
       {onRemove && (
         <button
           onClick={e => { e.stopPropagation(); onRemove() }}
-          className="hover:opacity-70 leading-none"
-          aria-label={`Remove ${label.name}`}
+          className="relative after:absolute after:-inset-3 after:content-[''] hover:opacity-70 leading-none"
+          aria-label={`Remove label ${label.name}`}
         >
           ×
         </button>

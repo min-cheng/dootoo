@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { RotateCcw, Star, ChevronDown, Hourglass } from 'lucide-react'
+import { RotateCcw, Star, ListChecks, Hourglass } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { Task } from '../types'
 import LabelChip from './LabelChip'
@@ -61,10 +61,10 @@ export default function TaskItem({ task, focused }: Props) {
       <button
         ref={checkRef}
         onClick={handleCheck}
-        className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center
+        className={`relative after:absolute after:-inset-2.5 after:content-[''] mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center
           ${task.completed || completing
             ? 'bg-gray-300 border-gray-300 dark:bg-gray-600 dark:border-gray-600'
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400'
+            : 'border-gray-400 dark:border-gray-500 hover:border-gray-600 dark:hover:border-gray-300'
           }`}
         aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
       >
@@ -96,7 +96,7 @@ export default function TaskItem({ task, focused }: Props) {
             className={`p-0.5 rounded transition-all
               ${task.starred
                 ? 'text-yellow-400 opacity-100'
-                : 'text-gray-300 dark:text-gray-700 opacity-0 group-hover:opacity-100 hover:text-yellow-400 dark:hover:text-yellow-400'
+                : 'text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:hidden hover:text-yellow-400 dark:hover:text-yellow-400'
               }`}
             aria-label={task.starred ? 'Unstar task' : 'Star task'}
           >
@@ -113,7 +113,7 @@ export default function TaskItem({ task, focused }: Props) {
               </span>
             )}
             {task.dueDate && (
-              <span className={`text-xs ${overdue ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`}>
+              <span className={`text-xs ${overdue ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {task.startDate && !overdue ? `Due ${lowerRelative(formatDueDate(task.dueDate))}` : formatDueDate(task.dueDate)}
                 {task.dueTime && ` · ${task.dueTime}`}
               </span>
@@ -125,14 +125,14 @@ export default function TaskItem({ task, focused }: Props) {
               </span>
             )}
             {task.recurring && (
-              <span className="flex items-center gap-0.5 text-xs text-gray-400 dark:text-gray-500">
+              <span className="flex items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400">
                 <RotateCcw size={10} />
                 {formatRecurring(task.recurring)}
               </span>
             )}
             {hasSubtasks && (
-              <span className="flex items-center gap-0.5 text-xs text-gray-400 dark:text-gray-500">
-                <ChevronDown size={10} />
+              <span className="flex items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400" aria-label={`${subtasksDone} of ${task.subtasks.length} subtasks done`}>
+                <ListChecks size={10} />
                 {subtasksDone}/{task.subtasks.length}
               </span>
             )}

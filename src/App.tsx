@@ -13,6 +13,9 @@ import QuickAdd from './components/QuickAdd'
 import BoardView from './components/BoardView'
 import CalendarView from './components/CalendarView'
 import AboutView from './components/AboutView'
+import Toasts from './components/Toasts'
+
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
 
 export default function App() {
   const { view, darkMode, serifMode, setQuickAddOpen, selectedTaskId, loadData, setUserId, loading } = useStore()
@@ -66,7 +69,10 @@ export default function App() {
         setQuickAddOpen(true)
         return
       }
-      if (e.key === 'q' && !editing && !e.metaKey && !e.ctrlKey) {
+      const { quickAddOpen, selectedTaskId } = useStore.getState()
+      const dialogOpen = quickAddOpen || !!selectedTaskId
+
+      if (e.key === 'q' && !editing && !dialogOpen && !e.metaKey && !e.ctrlKey) {
         setQuickAddOpen(true)
         return
       }
@@ -75,7 +81,7 @@ export default function App() {
         useStore.getState().setQuickAddOpen(false)
         return
       }
-      if (!editing && !e.metaKey && !e.ctrlKey) {
+      if (!editing && !dialogOpen && !e.metaKey && !e.ctrlKey) {
         if (e.key === '1') useStore.getState().setView('today')
         if (e.key === '2') useStore.getState().setView('upcoming')
         if (e.key === '3') useStore.getState().setView('all')
@@ -116,7 +122,7 @@ export default function App() {
     <div className={`h-full flex bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 ${serifMode ? 'font-serif-mode' : ''}`}>
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto min-w-0 pb-14 md:pb-0">
+      <main className="flex-1 overflow-y-auto min-w-0 pb-[calc(60px+env(safe-area-inset-bottom))] md:pb-0">
         {isListView && (
           <div className="max-w-2xl mx-auto pb-24">
             <TaskList view={view} />
@@ -134,6 +140,7 @@ export default function App() {
       {selectedTaskId && <TaskDetail />}
       <QuickAdd />
       <BottomNav />
+      <Toasts />
 
       {/* Mobile FAB */}
       <button
@@ -149,10 +156,10 @@ export default function App() {
         <Plus size={24} />
       </button>
 
-      <div className="fixed bottom-4 right-4 z-10 hidden lg:flex items-center gap-1.5 text-xs text-gray-300 dark:text-gray-700 pointer-events-none select-none">
-        <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 dark:text-gray-600">Q</kbd>
+      <div className="fixed bottom-4 right-4 z-10 hidden lg:flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 pointer-events-none select-none">
+        <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500">Q</kbd>
         <span>or</span>
-        <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 dark:text-gray-600">⌘K</kbd>
+        <kbd className="font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500">{IS_MAC ? '⌘K' : 'Ctrl K'}</kbd>
         <span>to add</span>
       </div>
     </div>

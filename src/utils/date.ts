@@ -11,6 +11,9 @@ import {
   isAfter,
   parseISO,
   differenceInCalendarDays,
+  startOfMonth,
+  getDaysInMonth,
+  setDate,
 } from 'date-fns'
 import type { RecurringConfig, Task } from '../types'
 
@@ -87,7 +90,11 @@ export function getNextOccurrence(config: RecurringConfig, fromDate: string): st
   const date = parseISO(fromDate)
   if (config.pattern === 'daily') return format(addDays(date, 1), 'yyyy-MM-dd')
   if (config.pattern === 'weekly') return format(addDays(date, 7), 'yyyy-MM-dd')
-  if (config.pattern === 'monthly') return format(addMonths(date, 1), 'yyyy-MM-dd')
+  if (config.pattern === 'monthly') {
+    if (!config.dayOfMonth) return format(addMonths(date, 1), 'yyyy-MM-dd')
+    const nextMonth = addMonths(startOfMonth(date), 1)
+    return format(setDate(nextMonth, Math.min(config.dayOfMonth, getDaysInMonth(nextMonth))), 'yyyy-MM-dd')
+  }
   if (config.pattern === 'weekdays') {
     let next = addDays(date, 1)
     while (next.getDay() === 0 || next.getDay() === 6) next = addDays(next, 1)
@@ -98,6 +105,41 @@ export function getNextOccurrence(config: RecurringConfig, fromDate: string): st
     return format(nthWeekdayOfMonth(config.nth, config.weekday, nextMonth.getFullYear(), nextMonth.getMonth()), 'yyyy-MM-dd')
   }
   return format(addDays(date, 1), 'yyyy-MM-dd')
+}
+
+// The next occurrence strictly after today, so checking off an overdue repeat doesn't leave it overdue
+// (or put it straight back into Today)
+export function nextOccurrenceAfter(config: RecurringConfig, fromDate: string, today: string): string {
+  let next = getNextOccurrence(config, fromDate)
+  for (let i = 0; next <= today && i < 1000; i++) next = getNextOccurrence(config, next)
+  return next
+}
+
+// First due date for a repeating task created without one
+export function firstOccurrence(config: RecurringConfig, today: string): string {
+  const d = parseISO(today)
+  if (config.pattern === 'weekdays') {
+    let x = d
+    while (x.getDay() === 0 || x.getDay() === 6) x = addDays(x, 1)
+    return format(x, 'yyyy-MM-dd')
+  }
+  if (config.pattern === 'monthly-nth-weekday' && config.nth !== undefined && config.weekday !== undefined) {
+    const thisMonth = format(nthWeekdayOfMonth(config.nth, config.weekday, d.getFullYear(), d.getMonth()), 'yyyy-MM-dd')
+    if (thisMonth >= today) return thisMonth
+    const next = addMonths(startOfMonth(d), 1)
+    return format(nthWeekdayOfMonth(config.nth, config.weekday, next.getFullYear(), next.getMonth()), 'yyyy-MM-dd')
+  }
+  return today
+}
+
+// Remember a monthly task's day so the 31st survives February; re-anchor if the date was moved by hand
+export function withMonthlyAnchor(config: RecurringConfig, dateStr: string | undefined): RecurringConfig {
+  if (config.pattern !== 'monthly' || !dateStr) return config
+  const d = parseISO(dateStr)
+  const day = d.getDate()
+  const clamped = config.dayOfMonth !== undefined && config.dayOfMonth > day && day === getDaysInMonth(d)
+  if (config.dayOfMonth === day || clamped) return config
+  return { ...config, dayOfMonth: day }
 }
 
 export function formatRecurring(config: RecurringConfig): string {

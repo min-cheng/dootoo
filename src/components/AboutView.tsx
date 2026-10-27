@@ -38,8 +38,9 @@ const examples: { typed: ReactNode; result: string }[] = [
   { typed: <>Rewrite website copy <Hl>from wednesday</Hl> <Hl>by friday</Hl></>, result: 'In Today every day from Wednesday until done, due Friday' },
   { typed: <>Pay water bill <Hl>june 15</Hl> <Hl>#home</Hl></>, result: 'Due June 15, with a “home” label' },
   { typed: <>Book flights <Hl>!!</Hl></>, result: "Starred, so it's easy to find" },
-  { typed: <>Pick paint colors <Hl>~Min</Hl></>, result: 'Filed under Waiting, as waiting on Min' },
-  { typed: <>Take vitamins <Hl>every day</Hl></>, result: 'Repeats every day' },
+  { typed: <>Ask <Hl>~Min</Hl> about paint colors</>, result: 'Filed under Waiting, as waiting on Min' },
+  { typed: <>Take vitamins <Hl>every day</Hl></>, result: 'Repeats every day, starting today' },
+  { typed: <>Water the plants <Hl>every monday</Hl></>, result: 'Repeats every Monday, starting this Monday' },
   { typed: <>Book club <Hl>last thursday of the month</Hl></>, result: 'Repeats on the last Thursday of each month' },
 ]
 
@@ -92,9 +93,10 @@ export default function AboutView() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Dates it understands: today, tomorrow, next week, a day like friday, or a date like june 15 (spell out the month). Times: at 3pm or at 3:30pm.
+        <p className="text-xs text-gray-500 dark:text-gray-500">
+          Dates it understands: today, tomorrow, next week, a day like friday, or a date like june 15 or jun 15. Times: at 3pm or at 3:30pm (“at 3” means 3pm).
           Put <span className="font-medium">from</span> before a date to set when you start, and <span className="font-medium">by</span> before the deadline. You can also set a start date in the task panel.
+          After <span className="font-medium">~</span>, use one word for the name.
         </p>
       </Section>
 
@@ -110,7 +112,7 @@ export default function AboutView() {
         </dl>
         <p>Tap the circle next to a task to check it off. Tap the task itself to add notes, smaller steps, or labels.</p>
         <p>To delete a task, tap it, then tap the trash can at the top of the panel that opens. Deleting is instant and can't be undone.</p>
-        <p className="text-xs text-gray-400 dark:text-gray-500">Laptop shortcuts: Q or Ctrl+K adds a task, 1–5 switch lists, Esc closes a panel.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-500">Laptop shortcuts: Q or Ctrl+K adds a task, 1–5 switch lists, Esc closes a panel.</p>
       </Section>
 
       <Section title="Forgot your password?">
@@ -118,7 +120,7 @@ export default function AboutView() {
           On the sign-in screen, tap <B>Forgot password?</B>, enter your email, and tap <B>Email me a reset link</B>.
           Open the email, tap the link, and choose a new password.
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500">No email after a few minutes? Check spam. If it's not there, wait an hour and try again.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-500">No email after a few minutes? Check spam. If it's not there, wait an hour and try again.</p>
       </Section>
 
       <Section title="Ideas, bugs, or want to tinker?">
@@ -137,7 +139,7 @@ export default function AboutView() {
                 <span>{link.why}</span>
                 <span className="text-violet-600 dark:text-violet-400 break-all">{link.url}</span>
               </div>
-              <ArrowUpRight size={16} className="mt-0.5 text-gray-300 dark:text-gray-600 group-hover:text-violet-500" />
+              <ArrowUpRight size={16} className="mt-0.5 text-gray-400 dark:text-gray-500 group-hover:text-violet-500" />
             </a>
           ))}
         </div>

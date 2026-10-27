@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, parseISO, isToday } from 'date-fns'
 import { useStore } from '../store/useStore'
@@ -18,14 +18,35 @@ function DayModal({ dateStr, tasks, onClose }: DayModalProps) {
   const { setSelectedTaskId } = useStore()
   const d = parseISO(dateStr)
   const active = tasks.filter(t => !t.completed)
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    dialogRef.current?.focus()
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      previous?.focus?.()
+    }
+  }, [onClose])
 
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40" onClick={onClose} />
-      <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={format(d, 'EEEE, MMMM d')}
+        tabIndex={-1}
+        className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 max-w-[calc(100vw-32px)] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden focus:outline-none"
+      >
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-white">{format(d, 'EEEE, MMMM d')}</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{active.length} task{active.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{active.length} task{active.length !== 1 ? 's' : ''}</p>
         </div>
 
         <div className="max-h-72 overflow-y-auto">
@@ -39,7 +60,7 @@ function DayModal({ dateStr, tasks, onClose }: DayModalProps) {
             </button>
           ))}
           {active.length === 0 && (
-            <p className="px-5 py-3 text-sm text-gray-400 dark:text-gray-600">No tasks</p>
+            <p className="px-5 py-3 text-sm text-gray-500">No tasks</p>
           )}
         </div>
 
@@ -73,9 +94,10 @@ export default function CalendarView() {
   }
 
   const selectedTasks = selectedDate ? tasksByDate(selectedDate) : []
+  const closeDay = useCallback(() => setSelectedDate(null), [])
 
   return (
-    <div className="flex flex-col h-full overflow-hidden px-6 py-6">
+    <div className="flex flex-col h-full overflow-y-auto px-4 md:px-6 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -86,19 +108,21 @@ export default function CalendarView() {
         <div className="flex items-center gap-1">
           <button
             onClick={prevMonth}
-            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Previous month"
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <ChevronLeft size={18} />
           </button>
           <button
             onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth()) }}
-            className="px-3 py-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             Today
           </button>
           <button
             onClick={nextMonth}
-            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Next month"
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <ChevronRight size={18} />
           </button>
@@ -108,7 +132,7 @@ export default function CalendarView() {
       {/* DOW headers */}
       <div className="grid grid-cols-7 mb-1">
         {DOW.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-gray-400 dark:text-gray-600 py-1">
+          <div key={d} className="text-center text-xs font-medium text-gray-500 py-1">
             {d}
           </div>
         ))}
@@ -122,27 +146,48 @@ export default function CalendarView() {
           }
 
           const dayTasks = tasksByDate(dateStr)
+          const openCount = dayTasks.filter(t => !t.completed).length
           const today = isToday(parseISO(dateStr))
           const dayNum = parseInt(dateStr.slice(-2))
 
           return (
             <div
               key={dateStr}
+              role="button"
+              tabIndex={0}
+              aria-label={`${format(parseISO(dateStr), 'EEEE, MMMM d')}, ${openCount} task${openCount !== 1 ? 's' : ''}`}
               onClick={() => setSelectedDate(dateStr)}
-              className="bg-white dark:bg-gray-900 min-h-16 p-1.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors flex flex-col"
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedDate(dateStr)
+                }
+              }}
+              className="bg-white dark:bg-gray-900 min-h-16 p-1.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-400"
             >
               <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full self-start mb-1
                 ${today ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'text-gray-700 dark:text-gray-300'}`}>
                 {dayNum}
               </span>
 
-              <div className="flex flex-col gap-0.5 overflow-hidden">
+              {/* Phones: a count badge; chips are too narrow to read */}
+              {dayTasks.length > 0 && (
+                <span className={`md:hidden self-center mt-auto mb-1 min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center
+                  ${openCount > 0
+                    ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                  {openCount > 0 ? openCount : dayTasks.length}
+                </span>
+              )}
+
+              <div className="hidden md:flex flex-col gap-0.5 overflow-hidden">
                 {dayTasks.slice(0, 3).map(t => (
                   <div
                     key={t.id}
                     className={`text-xs truncate px-1 py-0.5 rounded
                       ${t.completed
-                        ? 'line-through text-gray-300 dark:text-gray-600'
+                        ? 'line-through text-gray-400 dark:text-gray-500'
                         : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                       }`}
                   >
@@ -150,7 +195,7 @@ export default function CalendarView() {
                   </div>
                 ))}
                 {dayTasks.length > 3 && (
-                  <div className="text-xs text-gray-400 dark:text-gray-600 px-1">+{dayTasks.length - 3} more</div>
+                  <div className="text-xs text-gray-500 px-1">+{dayTasks.length - 3} more</div>
                 )}
               </div>
             </div>
@@ -162,7 +207,7 @@ export default function CalendarView() {
         <DayModal
           dateStr={selectedDate}
           tasks={selectedTasks}
-          onClose={() => setSelectedDate(null)}
+          onClose={closeDay}
         />
       )}
     </div>

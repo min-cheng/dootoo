@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Sun, CalendarDays, List, LayoutGrid, MoreHorizontal,
-  Star, Hourglass, Calendar, X, Moon, CaseUpper, Tag, Info,
+  Star, Hourglass, Calendar, X, Moon, CaseUpper, Tag, Info, LogOut,
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { ViewType } from '../types'
@@ -11,7 +11,7 @@ import { todayStr, isInToday } from '../utils/date'
 export default function BottomNav() {
   const {
     view, setView, tasks, labels,
-    darkMode, toggleDarkMode, serifMode, toggleSerifMode,
+    darkMode, toggleDarkMode, serifMode, toggleSerifMode, signOut,
   } = useStore()
   const [moreOpen, setMoreOpen] = useState(false)
 
@@ -41,7 +41,7 @@ export default function BottomNav() {
             className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors
               ${view === item.id && !moreOpen
                 ? 'text-violet-600 dark:text-violet-400'
-                : 'text-gray-400 dark:text-gray-500'
+                : 'text-gray-500'
               }`}
           >
             {item.icon}
@@ -57,7 +57,8 @@ export default function BottomNav() {
         <button
           onClick={() => setMoreOpen(v => !v)}
           className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors
-            ${moreOpen || isMoreView ? 'text-violet-600 dark:text-violet-400' : 'text-gray-400 dark:text-gray-500'}`}
+            ${moreOpen || isMoreView ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500'}`}
+          aria-expanded={moreOpen}
         >
           <MoreHorizontal size={22} />
           <span className="text-[10px] font-medium">More</span>
@@ -77,13 +78,13 @@ export default function BottomNav() {
         className={`fixed left-0 right-0 z-[35] md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 rounded-t-2xl px-4 pt-4 transition-transform duration-200 ease-out
           ${moreOpen ? 'translate-y-0' : 'translate-y-full'}`}
         style={{
-          bottom: 'calc(56px + env(safe-area-inset-bottom))',
+          bottom: 'calc(60px + env(safe-area-inset-bottom))',
           paddingBottom: '16px',
         }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">More views</span>
-          <button onClick={() => setMoreOpen(false)} className="text-gray-400 p-1">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">More views</span>
+          <button onClick={() => setMoreOpen(false)} className="text-gray-500 p-2 -m-1" aria-label="Close menu">
             <X size={16} />
           </button>
         </div>
@@ -117,8 +118,8 @@ export default function BottomNav() {
         {labels.length > 0 && (
           <div className="mb-4">
             <div className="flex items-center gap-1.5 mb-2">
-              <Tag size={12} className="text-gray-400" />
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Labels</span>
+              <Tag size={12} className="text-gray-500" />
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Labels</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {labels.map(label => (
@@ -166,6 +167,14 @@ export default function BottomNav() {
             About
           </button>
         </div>
+
+        <button
+          onClick={() => { setMoreOpen(false); signOut() }}
+          className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
       </div>
     </>
   )

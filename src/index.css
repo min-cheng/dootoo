@@ -87,6 +87,11 @@
   font-weight: 500;
 }
 
+/* Keep spaced-out capital-letter labels readable in serif */
+.font-serif-mode .uppercase {
+  letter-spacing: 0.05em !important;
+}
+
 /* iOS Safari zooms the page into any focused field under 16px and doesn't zoom back out */
 @media (max-width: 767px) {
   input.text-xs, input.text-sm,

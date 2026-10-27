@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass, Play } from 'lucide-react'
+import { X, Trash2, RotateCcw, Star, Plus, Calendar, Tag, Hourglass, Play, LayoutGrid } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import LabelChip, { dotColor } from './LabelChip'
-import type { RecurringPattern, RecurringConfig } from '../types'
+import type { RecurringPattern, RecurringConfig, TaskStatus } from '../types'
 
 const RECURRING_OPTIONS: { value: RecurringPattern; label: string }[] = [
   { value: 'daily', label: 'Every day' },
@@ -10,6 +10,12 @@ const RECURRING_OPTIONS: { value: RecurringPattern; label: string }[] = [
   { value: 'monthly', label: 'Every month' },
   { value: 'weekdays', label: 'Weekdays' },
   { value: 'monthly-nth-weekday', label: 'Monthly (nth)' },
+]
+
+const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
+  { value: 'todo', label: 'To Do' },
+  { value: 'inprogress', label: 'In Progress' },
+  { value: 'done', label: 'Done' },
 ]
 
 const NTH_OPTIONS: { value: RecurringConfig['nth']; label: string }[] = [
@@ -30,6 +36,17 @@ const DAY_OPTIONS: { value: RecurringConfig['weekday']; label: string }[] = [
   { value: 6, label: 'Saturday' },
 ]
 
+const pillClass = (active: boolean) => `text-xs px-3 py-1 rounded-full border transition-colors
+  ${active
+    ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium'
+    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
+  }`
+
+const sectionLabel = 'flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide'
+
+// Invisible padding around small controls so they're easy to hit with a finger
+const hitArea = "relative after:absolute after:content-['']"
+
 export default function TaskDetail() {
   const {
     selectedTaskId,
@@ -38,6 +55,7 @@ export default function TaskDetail() {
     labels,
     updateTask,
     deleteTask,
+    moveTaskStatus,
     addSubtask,
     toggleSubtask,
     deleteSubtask,
@@ -50,6 +68,9 @@ export default function TaskDetail() {
   const [showLabelPicker, setShowLabelPicker] = useState(false)
   const [newLabelName, setNewLabelName] = useState('')
   const [newLabelColor, setNewLabelColor] = useState('blue')
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const dragStartY = useRef<number | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,10 +86,18 @@ export default function TaskDetail() {
     return () => window.removeEventListener('keydown', onKey)
   }, [setSelectedTaskId])
 
+  // Move focus into the panel (not the title, so phones don't raise the keyboard), and back out on close
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    panelRef.current?.focus({ preventScroll: true })
+    return () => previous?.focus?.({ preventScroll: true })
+  }, [])
+
   if (!task) return null
 
   const taskLabels = labels.filter(l => task.labelIds.includes(l.id))
   const availableLabels = labels.filter(l => !task.labelIds.includes(l.id))
+  const canHover = window.matchMedia('(hover: hover)').matches
 
   function handleAddSubtask() {
     if (!newSubtask.trim()) return
@@ -85,6 +114,25 @@ export default function TaskDetail() {
     setShowLabelPicker(false)
   }
 
+  function onDragStart(e: React.TouchEvent) {
+    if (!window.matchMedia('(max-width: 767px)').matches) return
+    dragStartY.current = e.touches[0].clientY
+    setDragging(true)
+  }
+
+  function onDragMove(e: React.TouchEvent) {
+    if (dragStartY.current === null) return
+    setDragY(Math.max(0, e.touches[0].clientY - dragStartY.current))
+  }
+
+  function onDragEnd() {
+    if (dragStartY.current === null) return
+    dragStartY.current = null
+    setDragging(false)
+    if (dragY > 80) setSelectedTaskId(null)
+    else setDragY(0)
+  }
+
   return (
     <>
       {/* Backdrop */}
@@ -96,36 +144,42 @@ export default function TaskDetail() {
       {/* Panel — right sheet on desktop, bottom sheet on mobile */}
       <div
         ref={panelRef}
-        className="task-detail-panel fixed z-30 bg-white dark:bg-gray-900 shadow-2xl flex flex-col overflow-hidden
-          bottom-14 left-0 right-0 max-h-[85vh] rounded-t-2xl border-t border-gray-100 dark:border-gray-800
+        role="dialog"
+        aria-modal="true"
+        aria-label="Task details"
+        tabIndex={-1}
+        style={{ translate: dragY ? `0 ${dragY}px` : undefined, transition: dragging ? 'none' : 'translate 0.2s ease-out' }}
+        className="task-detail-panel fixed z-30 bg-white dark:bg-gray-900 shadow-2xl flex flex-col overflow-hidden focus:outline-none
+          bottom-[calc(60px_+_env(safe-area-inset-bottom))] left-0 right-0 max-h-[85dvh] rounded-t-2xl border-t border-gray-100 dark:border-gray-800
           md:inset-y-0 md:right-0 md:left-auto md:bottom-0 md:w-96 md:max-h-none md:rounded-none md:border-t-0 md:border-l"
       >
-        {/* Drag handle — mobile only */}
-        <div className="flex justify-center pt-2.5 pb-1 md:hidden flex-shrink-0">
-          <div className="w-10 h-1 bg-gray-200 dark:bg-gray-700 rounded-full" />
-        </div>
+        {/* Drag handle + header: swipe down to close on phones */}
+        <div
+          className="flex-shrink-0 touch-none md:touch-auto"
+          onTouchStart={onDragStart}
+          onTouchMove={onDragMove}
+          onTouchEnd={onDragEnd}
+          onTouchCancel={onDragEnd}
+        >
+          <div className="flex justify-center pt-2.5 pb-1 md:hidden">
+            <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-          <button
-            onClick={() => updateTask(task.id, { starred: !task.starred })}
-            className={`p-1 rounded-lg transition-colors ${task.starred ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}
-          >
-            <Star size={16} className={task.starred ? 'fill-yellow-400' : ''} />
-          </button>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
             <button
-              onClick={() => { deleteTask(task.id) }}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-              title="Delete task"
+              onClick={() => updateTask(task.id, { starred: !task.starred })}
+              className={`${hitArea} after:-inset-2.5 p-1 rounded-lg transition-colors ${task.starred ? 'text-yellow-400' : 'text-gray-400 dark:text-gray-500 hover:text-yellow-400'}`}
+              aria-label={task.starred ? 'Unstar task' : 'Star task'}
+              aria-pressed={task.starred}
             >
-              <Trash2 size={15} />
+              <Star size={16} className={task.starred ? 'fill-yellow-400' : ''} />
             </button>
             <button
               onClick={() => setSelectedTaskId(null)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              className={`${hitArea} after:-inset-2.5 p-1 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors`}
+              aria-label="Close"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
         </div>
@@ -137,7 +191,8 @@ export default function TaskDetail() {
               value={task.title}
               onChange={e => updateTask(task.id, { title: e.target.value })}
               rows={2}
-              className="w-full text-lg font-semibold text-gray-900 dark:text-white bg-transparent resize-none focus:outline-none placeholder-gray-300 dark:placeholder-gray-700 leading-snug"
+              aria-label="Task title"
+              className="w-full text-lg font-semibold text-gray-900 dark:text-white bg-transparent resize-none focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 leading-snug"
               placeholder="Task title"
             />
           </div>
@@ -148,33 +203,36 @@ export default function TaskDetail() {
               value={task.notes}
               onChange={e => updateTask(task.id, { notes: e.target.value })}
               rows={4}
-              className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent resize-none focus:outline-none placeholder-gray-300 dark:placeholder-gray-700 leading-relaxed"
+              aria-label="Notes"
+              className="w-full text-sm text-gray-600 dark:text-gray-400 bg-transparent resize-none focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 leading-relaxed"
               placeholder="Add notes…"
             />
           </div>
 
           {/* Start date */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <label htmlFor="task-start-date" className={sectionLabel}>
               <Play size={12} /> Start date
             </label>
             <input
+              id="task-start-date"
               type="date"
               value={task.startDate ?? ''}
               max={task.dueDate}
               onChange={e => updateTask(task.id, { startDate: e.target.value || undefined })}
               className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400 dark:focus:ring-blue-600"
             />
-            <p className="text-xs text-gray-400 dark:text-gray-500">Shows in Today from this day until it's done.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Shows in Today from this day until it's done.</p>
           </div>
 
           {/* Due date & time */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <label htmlFor="task-due-date" className={sectionLabel}>
               <Calendar size={12} /> Due date
             </label>
             <div className="flex gap-2">
               <input
+                id="task-due-date"
                 type="date"
                 value={task.dueDate ?? ''}
                 onChange={e => updateTask(task.id, { dueDate: e.target.value || undefined })}
@@ -184,6 +242,7 @@ export default function TaskDetail() {
                 type="time"
                 value={task.dueTime ?? ''}
                 onChange={e => updateTask(task.id, { dueTime: e.target.value || undefined })}
+                aria-label="Due time"
                 className="w-28 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
             </div>
@@ -191,17 +250,14 @@ export default function TaskDetail() {
 
           {/* Recurring */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <span className={sectionLabel}>
               <RotateCcw size={12} /> Repeat
-            </label>
+            </span>
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => updateTask(task.id, { recurring: undefined })}
-                className={`text-xs px-3 py-1 rounded-full border transition-colors
-                  ${!task.recurring
-                    ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
-                  }`}
+                className={pillClass(!task.recurring)}
+                aria-pressed={!task.recurring}
               >
                 None
               </button>
@@ -213,11 +269,8 @@ export default function TaskDetail() {
                       ? { pattern: 'monthly-nth-weekday', nth: task.recurring?.nth ?? 1, weekday: task.recurring?.weekday ?? 0 }
                       : { pattern: opt.value }
                   })}
-                  className={`text-xs px-3 py-1 rounded-full border transition-colors
-                    ${task.recurring?.pattern === opt.value
-                      ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium'
-                      : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
-                    }`}
+                  className={pillClass(task.recurring?.pattern === opt.value)}
+                  aria-pressed={task.recurring?.pattern === opt.value}
                 >
                   {opt.label}
                 </button>
@@ -228,6 +281,7 @@ export default function TaskDetail() {
                 <select
                   value={task.recurring.nth ?? 1}
                   onChange={e => updateTask(task.id, { recurring: { ...task.recurring!, nth: Number(e.target.value) as RecurringConfig['nth'] } })}
+                  aria-label="Which week of the month"
                   className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
                 >
                   {NTH_OPTIONS.map(o => <option key={o.value} value={o.value!}>{o.label}</option>)}
@@ -235,6 +289,7 @@ export default function TaskDetail() {
                 <select
                   value={task.recurring.weekday ?? 0}
                   onChange={e => updateTask(task.id, { recurring: { ...task.recurring!, weekday: Number(e.target.value) as RecurringConfig['weekday'] } })}
+                  aria-label="Day of the week"
                   className="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
                 >
                   {DAY_OPTIONS.map(o => <option key={o.value} value={o.value!}>{o.label}</option>)}
@@ -243,11 +298,30 @@ export default function TaskDetail() {
             )}
           </div>
 
+          {/* Status */}
+          <div className="space-y-2">
+            <span className={sectionLabel}>
+              <LayoutGrid size={12} /> Status
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {STATUS_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => moveTaskStatus(task.id, opt.value)}
+                  className={pillClass(task.status === opt.value)}
+                  aria-pressed={task.status === opt.value}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Labels */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <span className={sectionLabel}>
               <Tag size={12} /> Labels
-            </label>
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {taskLabels.map(l => (
                 <LabelChip
@@ -258,7 +332,8 @@ export default function TaskDetail() {
               ))}
               <button
                 onClick={() => setShowLabelPicker(v => !v)}
-                className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 hover:border-gray-500 hover:text-gray-600 transition-colors"
+                className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-gray-500 hover:text-gray-700 transition-colors"
+                aria-expanded={showLabelPicker}
               >
                 + Add
               </button>
@@ -283,21 +358,24 @@ export default function TaskDetail() {
                 )}
 
                 <div className="pt-1 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                  <p className="text-xs text-gray-400">Create new label</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Create new label</p>
                   <input
-                    autoFocus
+                    autoFocus={canHover}
                     value={newLabelName}
                     onChange={e => setNewLabelName(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleAddNewLabel() }}
                     placeholder="Label name"
-                    className="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400"
+                    aria-label="New label name"
+                    className="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
                   />
-                  <div className="flex gap-1.5 flex-wrap">
+                  <div className="flex gap-4 flex-wrap py-1">
                     {LABEL_COLORS.map(c => (
                       <button
                         key={c}
                         onClick={() => setNewLabelColor(c)}
-                        className={`w-4 h-4 rounded-full ${dotColor[c]} ${newLabelColor === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
+                        className={`${hitArea} after:-inset-y-3 after:-inset-x-2 w-4 h-4 rounded-full ${dotColor[c]} ${newLabelColor === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
+                        aria-label={`${c} color`}
+                        aria-pressed={newLabelColor === c}
                       />
                     ))}
                   </div>
@@ -314,9 +392,9 @@ export default function TaskDetail() {
 
           {/* Waiting */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <span className={sectionLabel}>
               <Hourglass size={12} /> Waiting
-            </label>
+            </span>
             <button
               onClick={() => updateTask(task.id, { waiting: !task.waiting, waitingOn: !task.waiting ? task.waitingOn : undefined })}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors
@@ -324,6 +402,7 @@ export default function TaskDetail() {
                   ? 'border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-400 font-medium'
                   : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
                 }`}
+              aria-pressed={!!task.waiting}
             >
               {task.waiting ? 'Waiting on someone' : 'Mark as waiting'}
             </button>
@@ -332,30 +411,33 @@ export default function TaskDetail() {
                 value={task.waitingOn ?? ''}
                 onChange={e => updateTask(task.id, { waitingOn: e.target.value || undefined })}
                 placeholder="Who or what are you waiting on?"
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-400 dark:focus:ring-amber-600"
+                aria-label="Waiting on"
+                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-amber-400 dark:focus:ring-amber-600"
               />
             )}
           </div>
 
           {/* Subtasks */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-500 uppercase tracking-wide">
+            <span className={sectionLabel}>
               Subtasks
-            </label>
+            </span>
 
             <div className="space-y-1">
               {task.subtasks
                 .slice()
                 .sort((a, b) => a.order - b.order)
                 .map(sub => (
-                  <div key={sub.id} className="flex items-center gap-2 group py-1">
+                  <div key={sub.id} className="flex items-center gap-2 group py-1 [@media(hover:none)]:py-1.5">
                     <button
                       onClick={() => toggleSubtask(task.id, sub.id)}
-                      className={`flex-shrink-0 w-4 h-4 rounded border-2 transition-all flex items-center justify-center
+                      className={`${hitArea} after:-inset-3 flex-shrink-0 w-4 h-4 rounded border-2 transition-all flex items-center justify-center
                         ${sub.completed
                           ? 'bg-gray-300 border-gray-300 dark:bg-gray-600 dark:border-gray-600'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-500'
+                          : 'border-gray-400 dark:border-gray-500 hover:border-gray-600'
                         }`}
+                      aria-label={sub.completed ? `Mark "${sub.title}" not done` : `Mark "${sub.title}" done`}
+                      aria-pressed={sub.completed}
                     >
                       {sub.completed && (
                         <svg width="7" height="5" viewBox="0 0 7 5" fill="none">
@@ -366,11 +448,13 @@ export default function TaskDetail() {
                     <input
                       value={sub.title}
                       onChange={e => updateSubtask(task.id, sub.id, { title: e.target.value })}
-                      className={`flex-1 text-sm bg-transparent focus:outline-none ${sub.completed ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
+                      aria-label="Subtask"
+                      className={`flex-1 text-sm bg-transparent focus:outline-none ${sub.completed ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200'}`}
                     />
                     <button
                       onClick={() => deleteSubtask(task.id, sub.id)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
+                      className={`${hitArea} after:-inset-3 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 text-gray-500 hover:text-red-500 transition-all`}
+                      aria-label={`Delete subtask "${sub.title}"`}
                     >
                       <X size={12} />
                     </button>
@@ -379,20 +463,32 @@ export default function TaskDetail() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Plus size={13} className="text-gray-400 flex-shrink-0" />
+              <Plus size={13} className="text-gray-500 flex-shrink-0" />
               <input
                 value={newSubtask}
                 onChange={e => setNewSubtask(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleAddSubtask() }}
                 placeholder="Add subtask…"
-                className="flex-1 text-sm bg-transparent text-gray-600 dark:text-gray-400 placeholder-gray-300 dark:placeholder-gray-700 focus:outline-none"
+                aria-label="Add subtask"
+                className="flex-1 text-sm bg-transparent text-gray-600 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
               />
             </div>
+          </div>
+
+          {/* Delete — kept well away from Close */}
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+            <button
+              onClick={() => deleteTask(task.id)}
+              className="flex items-center gap-2 min-h-[40px] -mx-2 px-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <Trash2 size={15} />
+              Delete task
+            </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-400 dark:text-gray-600">
+        <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-500">
           Created {new Date(task.createdAt).toLocaleDateString()}
           {task.updatedAt !== task.createdAt && ` · Updated ${new Date(task.updatedAt).toLocaleDateString()}`}
         </div>

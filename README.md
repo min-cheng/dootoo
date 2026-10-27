@@ -30,15 +30,16 @@ The app used to be published at `min-cheng.github.io/dootoo` through GitHub Page
 
 - Views: Today, Upcoming, All, Board (to do / in progress / done), Calendar, Starred, Waiting, and one per label
 - Natural-language quick add, e.g. `call mom tomorrow at 3pm #family !!` (see `src/utils/nlp.ts`)
-  - Dates: `today`, `tomorrow`, `next week`, `next month`, a weekday (`friday`, `next friday`), a full month name and day (`june 15`)
+  - Dates: `today`, `tomorrow`, `next week`, `next month`, a weekday (`friday`, `next friday`), a month and day (`june 15`, `jan 3`)
   - Start dates: `from wednesday by friday` sets a start date and a due date. A started task shows in Today every day until it's done.
-  - Time: `at 3pm`, `at 3:30pm`, `at 15:00`
-  - Repeats: `every day`/`daily`, `every week`/`weekly`, `every month`/`monthly`, `every weekday`, `first sunday of every month`, `last friday of the month`
-  - `#label` adds a label, `!!` stars it, `~name` marks it as waiting on someone
+  - Time: `at 3pm`, `at 3:30pm`, `at 15:00`; a bare `at 1`–`at 7` means afternoon
+  - Repeats: `every day`/`daily`, `every week`/`weekly`, `every monday`, `every month`/`monthly`, `every weekday`, `first sunday of every month`, `last friday of the month`. A repeat with no date starts today.
+  - `#label` adds a label, `!!` stars it, `~name` (one word) marks it as waiting on someone
 - Subtasks, notes, labels with colors, starred tasks, "waiting on" tasks
 - Keyboard shortcuts on desktop: `Q` or `⌘K` to add, `1`–`5` to switch views, `Esc` to close
 - Dark mode and a serif-font mode (saved per device)
-- Email + password login with sign up and "Forgot password?"
+- Email + password login with sign up, "Forgot password?" and Sign out (bottom of the sidebar, or More on a phone)
+- Undo after deleting a task, and a Retry notice when a change didn't save
 
 ## Project layout
 

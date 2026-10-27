@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Hourglass, Pencil, Trash2, Check, X, CaseUpper, Info,
+  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Hourglass, Pencil, Trash2, Check, X, CaseUpper, Info, LogOut,
 } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import type { ViewType, Label } from '../types'
@@ -28,15 +28,16 @@ function NavItem({ icon, label, active, count, onClick }: NavItemProps) {
       <span className={active ? 'opacity-90' : 'opacity-70'}>{icon}</span>
       <span className="flex-1 truncate">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className={`text-xs tabular-nums ${active ? 'opacity-60' : 'text-gray-400 dark:text-gray-500'}`}>{count}</span>
+        <span className={`text-xs tabular-nums ${active ? 'opacity-60' : 'text-gray-500'}`}>{count}</span>
       )}
     </button>
   )
 }
 
 export default function Sidebar() {
-  const { view, setView, labels, addLabel, updateLabel, deleteLabel, darkMode, toggleDarkMode, serifMode, toggleSerifMode, tasks } = useStore()
+  const { view, setView, labels, addLabel, updateLabel, deleteLabel, darkMode, toggleDarkMode, serifMode, toggleSerifMode, tasks, signOut } = useStore()
   const [labelsExpanded, setLabelsExpanded] = useState(true)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [addingLabel, setAddingLabel] = useState(false)
   const [newLabelName, setNewLabelName] = useState('')
   const [newLabelColor, setNewLabelColor] = useState('blue')
@@ -58,9 +59,9 @@ export default function Sidebar() {
     setEditingId(null)
   }
 
-  function handleDeleteLabel(id: string, e: React.MouseEvent) {
-    e.stopPropagation()
+  function handleDeleteLabel(id: string) {
     deleteLabel(id)
+    setConfirmDeleteId(null)
     if (view === `label:${id}`) setView('today')
   }
 
@@ -150,8 +151,9 @@ export default function Sidebar() {
       {/* Labels */}
       <div>
         <button
-          className="w-full flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors mb-1"
+          className="w-full flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors mb-1"
           onClick={() => setLabelsExpanded(v => !v)}
+          aria-expanded={labelsExpanded}
         >
           {labelsExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           LABELS
@@ -161,7 +163,24 @@ export default function Sidebar() {
           <div className="flex flex-col gap-0.5">
             {labels.map(label => (
               <div key={label.id}>
-                {editingId === label.id ? (
+                {confirmDeleteId === label.id ? (
+                  <div className="px-3 py-1.5 flex items-center gap-1 text-xs">
+                    <span className="flex-1 truncate text-gray-700 dark:text-gray-300">Delete #{label.name}?</span>
+                    <button
+                      autoFocus
+                      onClick={() => handleDeleteLabel(label.id)}
+                      className="px-1.5 py-1 rounded-md font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="px-1.5 py-1 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : editingId === label.id ? (
                   <div className="px-3 py-1.5 flex flex-col gap-2">
                     <input
                       autoFocus
@@ -178,6 +197,8 @@ export default function Sidebar() {
                         <button
                           key={c}
                           onClick={() => setEditColor(c)}
+                          aria-label={c}
+                          aria-pressed={editColor === c}
                           className={`w-4 h-4 rounded-full ${dotColor[c]} ${editColor === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
                         />
                       ))}
@@ -209,25 +230,27 @@ export default function Sidebar() {
                     >
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor[label.color] ?? 'bg-gray-400'}`} />
                       <span className="flex-1 truncate">{label.name}</span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums group-hover:hidden">
+                      <span className="text-xs text-gray-500 tabular-nums group-hover:hidden group-focus-within:hidden [@media(hover:none)]:hidden">
                         {labelCount(label.id) > 0 ? labelCount(label.id) : ''}
                       </span>
                     </button>
-                    {/* Edit / delete — visible on hover */}
-                    <div className="absolute right-2 hidden group-hover:flex items-center gap-1">
+                    {/* Edit / delete — on hover, keyboard focus, or always on touch screens */}
+                    <div className="absolute right-1.5 hidden group-hover:flex group-focus-within:flex [@media(hover:none)]:flex items-center gap-0.5">
                       <button
                         onClick={e => startEdit(label, e)}
-                        className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded"
+                        className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded"
                         title="Rename"
+                        aria-label={`Rename label ${label.name}`}
                       >
-                        <Pencil size={11} />
+                        <Pencil size={12} />
                       </button>
                       <button
-                        onClick={e => handleDeleteLabel(label.id, e)}
-                        className="p-0.5 text-gray-400 hover:text-red-500 rounded"
+                        onClick={e => { e.stopPropagation(); setConfirmDeleteId(label.id) }}
+                        className="p-1 text-gray-500 hover:text-red-500 rounded"
                         title="Delete label"
+                        aria-label={`Delete label ${label.name}`}
                       >
-                        <Trash2 size={11} />
+                        <Trash2 size={12} />
                       </button>
                     </div>
                   </div>
@@ -253,6 +276,8 @@ export default function Sidebar() {
                     <button
                       key={c}
                       onClick={() => setNewLabelColor(c)}
+                      aria-label={c}
+                      aria-pressed={newLabelColor === c}
                       className={`w-4 h-4 rounded-full ${dotColor[c]} ${newLabelColor === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
                     />
                   ))}
@@ -275,7 +300,7 @@ export default function Sidebar() {
             ) : (
               <button
                 onClick={() => setAddingLabel(true)}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
               >
                 <Plus size={12} />
                 New label
@@ -293,7 +318,7 @@ export default function Sidebar() {
         className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors
           ${view === 'about'
             ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-            : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300'
+            : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
       >
         <Info size={15} />
@@ -303,7 +328,7 @@ export default function Sidebar() {
       {/* Serif mode toggle */}
       <button
         onClick={toggleSerifMode}
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
       >
         <CaseUpper size={15} />
         {serifMode ? 'Sans serif' : 'Serif'}
@@ -312,10 +337,18 @@ export default function Sidebar() {
       {/* Dark mode toggle */}
       <button
         onClick={toggleDarkMode}
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
       >
         {darkMode ? <Sun size={15} /> : <Moon size={15} />}
         {darkMode ? 'Light mode' : 'Dark mode'}
+      </button>
+
+      <button
+        onClick={() => signOut()}
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+      >
+        <LogOut size={15} />
+        Sign out
       </button>
     </aside>
   )
