@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { Plus } from 'lucide-react'
-import { supabase } from './lib/supabase'
+import { supabase, openedFromRecoveryLink } from './lib/supabase'
 import { useStore } from './store/useStore'
-import Auth from './components/Auth'
+import Auth, { SetPassword } from './components/Auth'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
 import TaskList from './components/TaskList'
@@ -15,6 +15,7 @@ import CalendarView from './components/CalendarView'
 export default function App() {
   const { view, darkMode, serifMode, setQuickAddOpen, selectedTaskId, loadData, setUserId, loading } = useStore()
   const [authUser, setAuthUser] = useState<User | null | undefined>(undefined) // undefined = still checking
+  const [recovering, setRecovering] = useState(openedFromRecoveryLink)
 
   // Apply dark mode to <html>
   useEffect(() => {
@@ -29,7 +30,8 @@ export default function App() {
       if (user) loadData(user.id)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovering(true)
       const user = session?.user ?? null
       setAuthUser(user)
       if (user) loadData(user.id)
@@ -94,6 +96,8 @@ export default function App() {
 
   // Not logged in
   if (!authUser) return <Auth />
+
+  if (recovering) return <SetPassword onDone={() => setRecovering(false)} />
 
   const isListView = view === 'today' || view === 'upcoming' || view === 'all' || view === 'starred' || view === 'waiting' || (typeof view === 'string' && view.startsWith('label:'))
 
