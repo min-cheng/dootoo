@@ -2,21 +2,45 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Auth() {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password) return
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
+    setSuccess('')
+
+    if (mode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+      }
+    } else {
+      const { error } = await supabase.auth.signUp({ email: email.trim(), password })
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+      } else {
+        setSuccess('Account created! Check your email to confirm, then sign in.')
+        setMode('signin')
+        setPassword('')
+        setLoading(false)
+      }
     }
+  }
+
+  function switchMode() {
+    setMode(m => m === 'signin' ? 'signup' : 'signin')
+    setError('')
+    setSuccess('')
+    setPassword('')
   }
 
   return (
@@ -31,7 +55,9 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Sign in</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+              {mode === 'signin' ? 'Sign in' : 'Create account'}
+            </h1>
           </div>
           <input
             type="email"
@@ -46,19 +72,31 @@ export default function Auth() {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Password"
-            autoComplete="current-password"
+            placeholder={mode === 'signup' ? 'Password (min 6 characters)' : 'Password'}
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
             className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-400 dark:focus:ring-violet-600 transition-shadow"
           />
           {error && <p className="text-xs text-red-500">{error}</p>}
+          {success && <p className="text-xs text-green-600 dark:text-green-400">{success}</p>}
           <button
             type="submit"
             disabled={loading || !email.trim() || !password}
             className="w-full py-2.5 text-sm font-medium rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors disabled:opacity-40"
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? (mode === 'signin' ? 'Signing in…' : 'Creating account…') : (mode === 'signin' ? 'Sign in' : 'Create account')}
           </button>
         </form>
+
+        <p className="mt-5 text-center text-sm text-gray-500 dark:text-gray-400">
+          {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
+          <button
+            type="button"
+            onClick={switchMode}
+            className="text-violet-600 dark:text-violet-400 hover:underline font-medium"
+          >
+            {mode === 'signin' ? 'Sign up' : 'Sign in'}
+          </button>
+        </p>
       </div>
     </div>
   )
