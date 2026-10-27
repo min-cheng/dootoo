@@ -4,7 +4,7 @@ A personal to-do app for Min and family. Live at **https://dootoo.vercel.app**.
 
 Each person signs up with their own email and password and sees only their own tasks. It works in a desktop browser and on a phone, where it can be added to the home screen like an app.
 
-New to the app? Read the plain-language guide: [docs/getting-started.html](docs/getting-started.html).
+New to the app? Open **About** in the app (bottom of the sidebar on a laptop, **More** on a phone). [docs/getting-started.html](docs/getting-started.html) is the same guide as a standalone page, with sign-up steps, for sending to someone who hasn't joined yet.
 
 ## How it fits together
 

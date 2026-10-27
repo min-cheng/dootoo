@@ -11,6 +11,7 @@ import TaskDetail from './components/TaskDetail'
 import QuickAdd from './components/QuickAdd'
 import BoardView from './components/BoardView'
 import CalendarView from './components/CalendarView'
+import AboutView from './components/AboutView'
 
 export default function App() {
   const { view, darkMode, serifMode, setQuickAddOpen, selectedTaskId, loadData, setUserId, loading } = useStore()
@@ -122,6 +123,11 @@ export default function App() {
         )}
         {view === 'board' && <BoardView />}
         {view === 'calendar' && <CalendarView />}
+        {view === 'about' && (
+          <div className="max-w-2xl mx-auto pb-24">
+            <AboutView />
+          </div>
+        )}
       </main>
 
       {selectedTaskId && <TaskDetail />}

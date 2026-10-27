@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Sun, CalendarDays, List, LayoutGrid, MoreHorizontal,
-  Star, Hourglass, Calendar, X, Moon, CaseUpper, Tag,
+  Star, Hourglass, Calendar, X, Moon, CaseUpper, Tag, Info,
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import type { ViewType } from '../types'
@@ -17,7 +17,7 @@ export default function BottomNav() {
   const today = new Date().toISOString().slice(0, 10)
   const todayCount = tasks.filter(t => !t.completed && t.dueDate === today).length
 
-  const isMoreView = view === 'starred' || view === 'waiting' || view === 'calendar' || view.toString().startsWith('label:')
+  const isMoreView = view === 'starred' || view === 'waiting' || view === 'calendar' || view === 'about' || view.toString().startsWith('label:')
 
   const mainNav: { id: ViewType; icon: React.ReactNode; label: string; badge?: number }[] = [
     { id: 'today', icon: <Sun size={22} />, label: 'Today', badge: todayCount || undefined },
@@ -71,9 +71,9 @@ export default function BottomNav() {
         />
       )}
 
-      {/* More sheet */}
+      {/* More sheet — z-35: above the backdrop, below the nav bar so its closed position can't cover the bar */}
       <div
-        className={`fixed left-0 right-0 z-50 md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 rounded-t-2xl px-4 pt-4 transition-transform duration-200 ease-out
+        className={`fixed left-0 right-0 z-[35] md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 rounded-t-2xl px-4 pt-4 transition-transform duration-200 ease-out
           ${moreOpen ? 'translate-y-0' : 'translate-y-full'}`}
         style={{
           bottom: 'calc(56px + env(safe-area-inset-bottom))',
@@ -156,6 +156,17 @@ export default function BottomNav() {
           >
             <CaseUpper size={16} />
             Serif
+          </button>
+          <button
+            onClick={() => { setView('about'); setMoreOpen(false) }}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-colors
+              ${view === 'about'
+                ? 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400'
+                : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+              }`}
+          >
+            <Info size={16} />
+            About
           </button>
         </div>
       </div>

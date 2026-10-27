@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Hourglass, Pencil, Trash2, Check, X, CaseUpper,
+  Sun, Calendar, CalendarDays, LayoutGrid, List, Moon, Plus, ChevronDown, ChevronRight, Star, Hourglass, Pencil, Trash2, Check, X, CaseUpper, Info,
 } from 'lucide-react'
 import { useStore, LABEL_COLORS } from '../store/useStore'
 import type { ViewType, Label } from '../types'
@@ -286,6 +286,18 @@ export default function Sidebar() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      <button
+        onClick={() => setView('about')}
+        className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors
+          ${view === 'about'
+            ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+            : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+      >
+        <Info size={15} />
+        About
+      </button>
 
       {/* Serif mode toggle */}
       <button

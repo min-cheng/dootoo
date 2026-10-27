@@ -49,4 +49,5 @@ export type ViewType =
   | 'waiting'
   | 'board'
   | 'calendar'
+  | 'about'
   | `label:${string}`

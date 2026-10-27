@@ -19,6 +19,8 @@ Code lives on GitHub (`min-cheng/dootoo`, public). Vercel (team `min-creative`, 
 - **Run `npm run build` before pushing.** It type-checks (`tsc -b`). The "chunks larger than 500 kB" warning is known and harmless.
 - **Check UI changes in the browser.** Dev server: `npm run dev` → http://localhost:5173 (or `preview_start` with name `dootoo`). After a push, load https://dootoo.vercel.app and check the console.
 - **Never commit `.claude/settings.local.json`.** Stage files by name.
+- **Keep the two user guides in sync.** The in-app About page (`src/components/AboutView.tsx`) and `docs/getting-started.html` (published as a shareable page) say the same things. When a feature or instruction changes, update both.
+- **Checking screens behind login:** there's no test account. To check a component visually, make a throwaway `*.html` + `*.tsx` pair in the repo root that renders it (set store state with `useStore.setState`), open it on the dev server, then delete both files.
 - **Local dev uses the production database.** There is no staging Supabase. Don't create test data or test accounts without asking.
 
 ## Secrets and env vars
