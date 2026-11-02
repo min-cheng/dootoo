@@ -12,6 +12,7 @@ export interface RecurringConfig {
   weekday?: 0 | 1 | 2 | 3 | 4 | 5 | 6  // 0=Sun; only for monthly-nth-weekday
   nth?: 1 | 2 | 3 | 4 | -1              // -1=last; only for monthly-nth-weekday
   dayOfMonth?: number                   // only for monthly; remembers the 31st through short months
+  until?: string                        // YYYY-MM-DD; no new copy is made after this day
 }
 
 export type TaskStatus = 'todo' | 'inprogress' | 'done'

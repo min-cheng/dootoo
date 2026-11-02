@@ -42,6 +42,7 @@ const examples: { typed: ReactNode; result: string }[] = [
   { typed: <>Take vitamins <Hl>every day</Hl></>, result: 'Repeats every day, starting today' },
   { typed: <>Water the plants <Hl>every monday</Hl></>, result: 'Repeats every Monday, starting this Monday' },
   { typed: <>Book club <Hl>last thursday of the month</Hl></>, result: 'Repeats on the last Thursday of each month' },
+  { typed: <>Print econ slides <Hl>every week until dec 12</Hl></>, result: 'Repeats every week, with no new copy after December 12' },
 ]
 
 const places: [string, string][] = [
@@ -96,6 +97,7 @@ export default function AboutView() {
         <p className="text-xs text-gray-500 dark:text-gray-500">
           Dates it understands: today, tomorrow, next week, a day like friday, or a date like june 15 or jun 15. Times: at 3pm or at 3:30pm (“at 3” means 3pm).
           Put <span className="font-medium">from</span> before a date to set when you start, and <span className="font-medium">by</span> before the deadline. You can also set a start date in the task panel.
+          Put <span className="font-medium">until</span> after a repeat to end it, or set <span className="font-medium">Ends</span> under Repeat in the task panel.
           After <span className="font-medium">~</span>, use one word for the name.
         </p>
       </Section>

@@ -265,9 +265,10 @@ export default function TaskDetail() {
                 <button
                   key={opt.value}
                   onClick={() => updateTask(task.id, {
+                    // Switching how often it repeats keeps the end date
                     recurring: opt.value === 'monthly-nth-weekday'
-                      ? { pattern: 'monthly-nth-weekday', nth: task.recurring?.nth ?? 1, weekday: task.recurring?.weekday ?? 0 }
-                      : { pattern: opt.value }
+                      ? { pattern: 'monthly-nth-weekday', nth: task.recurring?.nth ?? 1, weekday: task.recurring?.weekday ?? 0, until: task.recurring?.until }
+                      : { pattern: opt.value, until: task.recurring?.until }
                   })}
                   className={pillClass(task.recurring?.pattern === opt.value)}
                   aria-pressed={task.recurring?.pattern === opt.value}
@@ -295,6 +296,36 @@ export default function TaskDetail() {
                   {DAY_OPTIONS.map(o => <option key={o.value} value={o.value!}>{o.label}</option>)}
                 </select>
               </div>
+            )}
+            {task.recurring && (
+              <div className="flex items-center gap-2 pt-1">
+                <label htmlFor="task-repeat-until" className="text-xs text-gray-500 dark:text-gray-500 w-10 shrink-0">
+                  Ends
+                </label>
+                <input
+                  id="task-repeat-until"
+                  type="date"
+                  value={task.recurring.until ?? ''}
+                  min={task.dueDate ?? task.startDate}
+                  onChange={e => updateTask(task.id, { recurring: { ...task.recurring!, until: e.target.value || undefined } })}
+                  className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-400 dark:focus:ring-blue-600"
+                />
+                {task.recurring.until && (
+                  <button
+                    onClick={() => updateTask(task.id, { recurring: { ...task.recurring!, until: undefined } })}
+                    className={`${hitArea} after:-inset-2 p-1 rounded text-gray-400 hover:text-gray-700 dark:hover:text-gray-200`}
+                    aria-label="Remove end date"
+                    title="Remove end date"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            )}
+            {task.recurring && (
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                {task.recurring.until ? 'No new copy after this day.' : 'Leave empty to repeat forever.'}
+              </p>
             )}
           </div>
 

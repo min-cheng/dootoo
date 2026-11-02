@@ -386,18 +386,22 @@ export const useStore = create<AppState>()((set, get) => ({
         // Keep the same lead time between start and due on the next round
         if (startDate && task.dueDate) startDate = shiftDate(startDate, daysBetween(task.dueDate, dueDate))
       }
-      set(s => ({
-        tasks: s.tasks.map(t =>
-          t.id === id
-            ? { ...t, completed: false, status: 'todo', completedAt: undefined, dueDate, startDate, recurring, updatedAt: new Date().toISOString() }
-            : t
-        ),
-      }))
-      if (userId) {
-        const updated = get().tasks.find(t => t.id === id)
-        if (updated) syncTask(updated, userId)
+      // Past the repeat's end date, it completes like a one-off task (below)
+      const nextDate = dueDate ?? startDate
+      if (!(recurring.until && nextDate && nextDate > recurring.until)) {
+        set(s => ({
+          tasks: s.tasks.map(t =>
+            t.id === id
+              ? { ...t, completed: false, status: 'todo', completedAt: undefined, dueDate, startDate, recurring, updatedAt: new Date().toISOString() }
+              : t
+          ),
+        }))
+        if (userId) {
+          const updated = get().tasks.find(t => t.id === id)
+          if (updated) syncTask(updated, userId)
+        }
+        return
       }
-      return
     }
 
     set(s => ({

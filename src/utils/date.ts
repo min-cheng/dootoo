@@ -146,7 +146,7 @@ export function formatRecurring(config: RecurringConfig): string {
   if (config.pattern === 'monthly-nth-weekday' && config.nth !== undefined && config.weekday !== undefined) {
     const nthLabel: Record<number, string> = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th', [-1]: 'Last' }
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    return `${nthLabel[config.nth]} ${dayNames[config.weekday]} of month`
+    return withUntil(`${nthLabel[config.nth]} ${dayNames[config.weekday]} of month`, config)
   }
   const labels: Record<string, string> = {
     daily: 'Every day',
@@ -154,7 +154,14 @@ export function formatRecurring(config: RecurringConfig): string {
     monthly: 'Every month',
     weekdays: 'Weekdays',
   }
-  return labels[config.pattern] ?? config.pattern
+  return withUntil(labels[config.pattern] ?? config.pattern, config)
+}
+
+// "Every week" → "Every week until Dec 12"
+function withUntil(label: string, config: RecurringConfig): string {
+  if (!config.until) return label
+  const end = parseISO(config.until)
+  return `${label} until ${format(end, isThisYear(end) ? 'MMM d' : 'MMM d, yyyy')}`
 }
 
 export function calendarMonthDays(year: number, month: number): (string | null)[] {
