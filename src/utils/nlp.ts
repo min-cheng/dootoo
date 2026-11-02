@@ -60,6 +60,24 @@ const DATE_PHRASE = `today|tomorrow|next\\s+week|next\\s+month|(?:next\\s+)?(?:$
 const START_RE = new RegExp(`\\b(?:from|starting|start)\\s+(${DATE_PHRASE})\\b`, 'i')
 const DUE_RE = new RegExp(`\\b(?:by|due)\\s+(${DATE_PHRASE})\\b`, 'i')
 const EVERY_WEEKDAY_RE = new RegExp(`\\bevery\\s+(${DAY_ALT})s?\\b`, 'i')
+const NUMERIC_DATE = `\\d{1,2}/\\d{1,2}(?:/\\d{2}(?:\\d{2})?)?`
+const UNTIL_RE = new RegExp(`\\b(?:until|till|through)\\s+(${DATE_PHRASE}|${NUMERIC_DATE})\\b`, 'i')
+
+// "12/12" or "12/12/2026" (month first). Without a year, a date that has passed means next year.
+function numericDate(text: string): string | null {
+  const m = text.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/)
+  if (!m) return null
+  const month = parseInt(m[1]) - 1
+  const day = parseInt(m[2])
+  if (month < 0 || month > 11 || day < 1 || day > 31) return null
+  const today = new Date()
+  let year = m[3] ? parseInt(m[3]) : today.getFullYear()
+  if (m[3] && year < 100) year += 2000
+  let candidate = new Date(year, month, day)
+  if (candidate.getMonth() !== month) return null
+  if (!m[3] && format(candidate, 'yyyy-MM-dd') < format(today, 'yyyy-MM-dd')) candidate = new Date(year + 1, month, day)
+  return format(candidate, 'yyyy-MM-dd')
+}
 
 function findDate(text: string): { date: string; index: number; length: number } | null {
   const today = new Date()
@@ -172,6 +190,18 @@ export function parseNL(input: string): ParsedTask {
         recurring = config
         text = text.replace(re, '').trim()
         break
+      }
+    }
+  }
+
+  // "every week until dec 12" ends the repeat on that day
+  if (recurring) {
+    const untilMatch = text.match(UNTIL_RE)
+    if (untilMatch && untilMatch.index !== undefined) {
+      const until = numericDate(untilMatch[1]) ?? findDate(untilMatch[1])?.date
+      if (until) {
+        recurring = { ...recurring, until }
+        text = text.slice(0, untilMatch.index) + text.slice(untilMatch.index + untilMatch[0].length)
       }
     }
   }

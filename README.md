@@ -34,6 +34,7 @@ The app used to be published at `min-cheng.github.io/dootoo` through GitHub Page
   - Start dates: `from wednesday by friday` sets a start date and a due date. A started task shows in Today every day until it's done.
   - Time: `at 3pm`, `at 3:30pm`, `at 15:00`; a bare `at 1`–`at 7` means afternoon
   - Repeats: `every day`/`daily`, `every week`/`weekly`, `every monday`, `every month`/`monthly`, `every weekday`, `first sunday of every month`, `last friday of the month`. A repeat with no date starts today.
+  - Repeat end dates: `every week until dec 12` (also `until december 12`, `until 12/12`). No new copy is made after that day. Also settable as **Ends** under Repeat in the task panel; stored as `until` inside the `recurring` JSON, so no database change.
   - `#label` adds a label, `!!` stars it, `~name` (one word) marks it as waiting on someone
 - Subtasks, notes, labels with colors, starred tasks, "waiting on" tasks
 - Keyboard shortcuts on desktop: `Q` or `⌘K` to add, `1`–`5` to switch views, `Esc` to close
